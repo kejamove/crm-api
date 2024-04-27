@@ -3,31 +3,35 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log; // Import the Log facade
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ForwardEmail;
+use Exception; 
 
 class EmailController extends Controller
 
 {
-    public function send_email(Request $request)
-{
-    $from_email = $request->input('from_email'); // Email address from which the email will be sent
-    $subject = $request->input('subject'); // Email subject
-    $message = $request->input('message'); // Email message
-    $to_email = $request->input('to_email'); // Recipient's email address
 
-    try {
-        // Create a new ForwardEmail instance with the provided parameters
-        $mail = new ForwardEmail($message, $subject, $to_email, $from_email);
+    public function send_email(Request $request) {
+        try {
+            $data = $request->all(); // Assuming you'll pass the recipient email and name in the request
+    
+            // Validate request data here if needed
+            
+            Mail::send('mail.mail', $data, function ($message) use ($data) {
+                $message->to($data['to_email'], $data['to_name'])
+                        ->subject($data['to_name'])
+                        ->from($data['from_email'], $data['from_name']);
+            });
+    
+            return response()->json(['message' => 'Email sent successfully']);
+        } catch (\Exception $e) {
+            // Log the error
+            Log::error('Error sending email: ' . $e->getMessage());
 
-        // Send the email
-        Mail::to($to_email)->send($mail);
-
-        return 'Mail sent successfully!';
-    } catch (\Exception $e) {
-        // Handle exception
-        return 'Failed to send mail: ' . $e->getMessage();
+        // Return the actual error message in the API response
+        return response()->json(['error' => $e->getMessage()], 500);
     }
 }
-
+    
 }

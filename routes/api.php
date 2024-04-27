@@ -22,7 +22,7 @@ use App\Models\User;
 
 Route::resource('products', ProductController::class);
 Route::get('products/search/{product_name}', [ProductController::class, 'search']);
-Route::get('email', [EmailController::class, 'send_email']);
+Route::post('/email', [EmailController::class, 'send_email']);
 
 // Basic Auth
 Route::middleware('auth:sanctum')->post('/register-user', [AuthController::class, 'register_user']);
