@@ -22,21 +22,29 @@ use App\Models\User;
 
 Route::resource('products', ProductController::class);
 Route::get('products/search/{product_name}', [ProductController::class, 'search']);
-Route::post('/email', [EmailController::class, 'send_email']);
 
-// Basic Auth
+/**
+ * Email Notifications
+ */
+Route::post('/possible-move-email-notification', [EmailController::class, 'email_received_and_under_review']);
+Route::post('/successful-move-email-notification', [EmailController::class, 'close_move_and_give_client_feedback']);
+
+/**
+ * Authenticate Users
+ */
 Route::middleware('auth:sanctum')->post('/register-user', [AuthController::class, 'register_user']);
-
 Route::post('/logout', [AuthController::class, 'logout']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// Get system wide users
+/**
+ * List User(s) details
+ */
 Route::middleware('auth:sanctum')->get('/all-users', [AuthController::class, 'get_all_users']);
-
-// Get the current logged in user
 Route::middleware('auth:sanctum')->get('/active-user', [AuthController::class, 'get_current_logged_in_user']);
 
 
-// Store
+/**
+ * CRUD Operations on a Store
+ */
 Route::middleware('auth:sanctum')->post('/register-store', [StoreController::class, 'store']);
 Route::middleware('auth:sanctum')->get('/all-stores', [StoreController::class, 'index']);

@@ -1,0 +1,1 @@
+Hello , We have received your email and will get back to you soon. {{$from_name}}!!
