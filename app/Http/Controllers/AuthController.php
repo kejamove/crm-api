@@ -16,10 +16,17 @@ class AuthController extends Controller
     public function get_all_users (){
         $user = Auth::user();
 
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not authenticated'
+            ], 401);
+        }
+
+
         if ($user->tokenCan('admin')) {
             return User::all();
         }else {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return response()->json(['message' => 'Lacking required permissions: Admin'], 403);
         }
     }
 
