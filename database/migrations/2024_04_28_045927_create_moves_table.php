@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('moves', function (Blueprint $table) {
             $table->id();
             $table->date('move_request_received_at')->default(Carbon::now());
-            $table->string('lead_source');
+            $table->string('lead_source')->default(LeadSourceEnum::new_lead->value);
             $table->string('consumer_name')->nullable();
             $table->string('corporate_name')->nullable();
             $table->string('contact_information');

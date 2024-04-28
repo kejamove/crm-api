@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Enums\LeadSourceEnum;
+
 
 class Move extends Model
 {
@@ -20,4 +23,17 @@ class Move extends Model
         'invoiced_amount',
         'notes',
     ];
+
+    public function sales_representative()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /* The attributes that should be cast.
+    *
+    * @var array<string, string>
+    */
+   protected $casts = [
+       'lead_source'=> LeadSourceEnum::class,
+   ];
 }
