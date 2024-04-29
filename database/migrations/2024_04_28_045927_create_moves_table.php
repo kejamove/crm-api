@@ -27,6 +27,8 @@ return new class extends Migration
             $table->foreign('sales_representative')->references('id')->on('users');
             $table->unsignedBigInteger('store')->nullable();
             $table->foreign('store')->references('id')->on('stores');
+            $table->unsignedBigInteger('lead')->nullable();
+            $table->foreign('lead')->references('id')->on('leads');
             $table->string('invoiced_amount')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
