@@ -136,75 +136,42 @@ class AuthController extends Controller
     
     }
 
-    public function register_user(Request $request) {
-
-        $user = Auth::user();
+   
     
-        // Check if the user is authorized to register a new user for the store
-        if (($user->tokenCan('store_owner') && $request->has('store') && $request->store == $user->store) || $user->tokenCan('admin')) {
-            
+    public function create_move(Request $request)
+    {
+        $user = Auth::user();
+
+        // Check if the user is authorized to create a move
+        // You can customize the authorization logic based on your requirements
+        if ($user->can('store_owner' || 'admin' || 'sales')) {
+
             // Validate incoming request data   
             $fields = $request->validate([
-                'first_name' => 'required|string',
-                'last_name' => 'required|string',
-                'phone_local_number' => 'required|string|unique:users,phone_local_number',
-                'phone_country_code' => 'required|string',
-                'email' => 'required|string|unique:users,email',
-                'password' => 'required|string|confirmed',
-                'user_type' => 'required|string',
-                'store' => 'required|exists:stores,id'
+                'lead_source' => 'required|string',
+                'consumer_name' => 'nullable|string',
+                'corporate_name' => 'nullable|string',
+                'contact_information' => 'required|string',
+                'moving_from' => 'required|string',
+                'moving_to' => 'required|string',
+                'sales_representative' => 'nullable|exists:users,id',
+                'store' => 'required|exists:stores,id',
+                'invoiced_amount' => 'nullable|string',
+                'notes' => 'nullable|string',
             ]);
 
-
-            /**
-             * Deny Non Admin members the ability to add admin members to the system
-             */
-            if($user->tokenCan('store_owner') && $fields['user_type'] == 'admin'){
-                return response()->json(['error' => 'Only Admin Members can add other admin members!!'], 403);
-            }
-    
             try {
-    
-                // Check if the store exists
-                $store = Store::find($fields['store']);
-                
-                if (!$store) {
-                    return response()->json(['error' => 'Store not found. Please provide a valid store ID.'], 404);
+                // Create the move
+                $move = Move::create($fields);
+
+                // Validate move creation
+                if (!$move) {
+                    return response()->json(['error' => 'Failed to create move.'], 500);
                 }
-                
-                // Hash the password
-                $hashedPassword = Hash::make($fields['password']);
-                
-                // Create the user
-                $user = User::create([
-                    'first_name' => $fields['first_name'],
-                    'last_name' => $fields['last_name'],
-                    'email' => $fields['email'],
-                    'password' => $hashedPassword,
-                    'phone_number_full' => $fields['phone_country_code'] . $fields['phone_local_number'],
-                    'phone_local_number' => $fields['phone_local_number'],
-                    'phone_country_code' => $fields['phone_country_code'],
-                    'user_type' => $fields['user_type'],
-                    'store' => $fields['store']
-                ]);
-    
-                // Validate user creation
-                if (!$user) {
-                    return response()->json(['error' => 'Failed to create user.'], 500);
-                }
-                
-                // Create user token with abilities of the given user type
-                $token = $user->createToken('kejamovetoken', [$fields['user_type']])->plainTextToken;
-                
-                // Prepare response
-                $response = [
-                    'user' => $user,
-                    'token' => $token
-                ];
-                
+
                 // Return successful response
-                return response($response, 201);
-                
+                return response()->json($move, 201);
+
             } catch (ValidationException $e) {
                 // Handle validation errors
                 return response()->json(['error' => 'Validation failed.', 'details' => $e->errors()], 422);
@@ -214,11 +181,11 @@ class AuthController extends Controller
                 return response()->json(['error' => 'Server error.', 'details' => $e->getMessage()], 500);
             
             }
-    
+
         } else {
-            return response()->json(['error' => 'Unauthorized.', 'message' => 'You need to own this store first.'], 403);
+            return response()->json(['error' => 'Unauthorized.', 'message' => 'You are not authorized to create a move.'], 403);
         }
-    
     }
+
         
 }

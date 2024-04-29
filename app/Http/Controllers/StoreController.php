@@ -171,4 +171,13 @@ class StoreController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
     }
+    /**
+     * Search for  resource from storage.
+     * @param str $name
+     * @return \Illuminate\Http\Response
+     */
+    public function search(string $store_name)
+    {
+        return Store::where('name', 'like', '%'.$store_name.'%')->get();
+    }
 }

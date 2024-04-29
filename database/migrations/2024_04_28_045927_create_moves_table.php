@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Carbon\Carbon;
 
 return new class extends Migration
 {
@@ -11,19 +12,23 @@ return new class extends Migration
      */
     public function up(): void
     {
+
+        // $lead_source_enum = ['new_lead', 'contacted', 'survey_scheduled', 'quote_sent', 'negotiations_started'];
         Schema::create('moves', function (Blueprint $table) {
             $table->id();
             $table->date('move_request_received_at')->default(Carbon::now());
-            $table->string('lead_source')->default(LeadSourceEnum::new_lead->value);
+            $table->enum('lead_source', ['new_lead', 'contacted', 'survey_scheduled', 'quote_sent', 'negotiations_started'])->default('new_lead');
             $table->string('consumer_name')->nullable();
             $table->string('corporate_name')->nullable();
             $table->string('contact_information');
             $table->string('moving_from');
             $table->string('moving_to');
-            $table->unsignedBigInteger('sales_representative')->change();
+            $table->unsignedBigInteger('sales_representative')->nullable();
             $table->foreign('sales_representative')->references('id')->on('users');
+            $table->unsignedBigInteger('store')->nullable();
+            $table->foreign('store')->references('id')->on('stores');
             $table->string('invoiced_amount')->nullable();
-            $table->string('notes')->nullable();
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
     }

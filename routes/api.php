@@ -6,6 +6,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\MoveController;
 use App\Models\User;
 
 /*
@@ -48,3 +49,10 @@ Route::middleware('auth:sanctum')->get('/active-user', [AuthController::class, '
  */
 Route::middleware('auth:sanctum')->post('/register-store', [StoreController::class, 'store']);
 Route::middleware('auth:sanctum')->get('/all-stores', [StoreController::class, 'index']);
+
+
+/**
+ * Move
+ */
+Route::middleware('auth:sanctum')->post('/register-move', [MoveController::class, 'create_move']);  
+Route::middleware('auth:sanctum')->get('/all-moves', [MoveController::class, 'index']);
