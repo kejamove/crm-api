@@ -28,7 +28,7 @@ class MoveController extends Controller
 
         // Check if the user is an admin && return all moves 
         if ($user->user_type === 'admin') {
-            return Move::all();
+            return response()->json(['data'=>Move::all()],200);
         }
 
         // Check if the user belongs to a store
@@ -37,7 +37,7 @@ class MoveController extends Controller
         }
 
         // Return moves belonging to the user's store
-        return Move::where('store', $user->store)->get();
+        return response()->json(['data'=>Move::where('store', $user->store)->get()],200);
     }
 
 
@@ -156,4 +156,5 @@ class MoveController extends Controller
         $move->delete();
         return response()->json(['message' => 'Move deleted successfully'], 200);
     }
+
 }
