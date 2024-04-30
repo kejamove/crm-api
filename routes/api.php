@@ -57,6 +57,7 @@ Route::middleware('auth:sanctum')->get('/all-stores', [StoreController::class, '
  */
 Route::middleware('auth:sanctum')->post('/register-move', [MoveController::class, 'create_move']);  
 Route::middleware('auth:sanctum')->get('/all-moves', [MoveController::class, 'index']);
+Route::middleware('auth:sanctum')->get('/all-moves/{id}', [MoveController::class, 'show']);
 
 /**
  * Lead

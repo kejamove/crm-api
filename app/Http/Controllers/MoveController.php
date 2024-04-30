@@ -6,16 +6,40 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Move;
 use App\Models\User;
+use App\Helpers;
 
 class MoveController extends Controller
 {
+
+    /**
+     * Create a new controller instance.
+     */
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return Move::all();
+        $user = Auth::user();
+
+        // Check if the user is an admin && return all moves 
+        if ($user->user_type === 'admin') {
+            return Move::all();
+        }
+
+        // Check if the user belongs to a store
+        if (!$user->store) {
+            return response()->json(['error' => 'forbidden', 'message' => 'You need to belong to a store.'], 403);
+        }
+
+        // Return moves belonging to the user's store
+        return Move::where('store', $user->store)->get();
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -30,62 +54,52 @@ class MoveController extends Controller
             'moving_to' => 'required',
             'contact_information' => 'required',
         ]);
-    
+
         // Check if the user is authenticated
         $user = Auth::user();
-        if (!$user) {
-            return response()->json(['error' => 'unauthorized', 'message' => 'You need to be logged in.'], 401);
-        }
-    
+
         // Check if the user belongs to a store
         if (!$user->store) {
             return response()->json(['error' => 'forbidden', 'message' => 'You need to belong to a store.'], 403);
         }
 
-        // check if the sales rep is in the same excact store
-        $user = User::findOrFail($request->sales_representative);
-
-        if(!$user){
-            return response->json(['error'=> 'User does not exists']);
-        }
-
-        if ($request->store != $user->store){
+        // Check if the sales representative belongs to the user's store
+        $salesRep = User::find($request->sales_representative);
+        if (!$salesRep || $salesRep->store != $user->store) {
             return response()->json(['error' => 'forbidden', 'message' => 'The sales rep does not belong to your store'], 403);
         }
-    
+
         // Prepare data for move creation
-        $data = [
-            'sales_representative' => $request->sales_representative,
-            'store' => $user->store,
-            'lead_source' => $request->lead_source,
-            'consumer_name' => $request->consumer_name,
-            'corporate_name' => $request->corporate_name,
-            'contact_information' => $request->contact_information,
-            'moving_from' => $request->moving_from,
-            'moving_to' => $request->moving_to,
-            'invoiced_amount' => $request->invoiced_amount,
-            'notes' => $request->notes
-        ];
-    
+        $data = $request->only([
+            'sales_representative',
+            'store',
+            'lead_source',
+            'consumer_name',
+            'corporate_name',
+            'contact_information',
+            'moving_from',
+            'moving_to',
+            'invoiced_amount',
+            'notes'
+        ]);
+
         try {
             // Create the move
             $move = Move::create($data);
             // Return the created move with status code 201 (Created)
-            return response()->json($move, 201);
+            return response()->json(['data' => $move], 201);
         } catch (\Exception $e) {
             // Handle server errors
-            return response()->json(['error' => 'internal_server_error'.$e, 'message' => 'Failed to create move. Please try again later.'], 500);
+            return response()->json(['error' => 'internal_server_error' . $e, 'message' => 'Failed to create move. Please try again later.'], 500);
         }
     }
-    
-
 
     /**
      * Display the specified resource.
      */
     public function show(string $id)
     {
-          // Find the move by its ID
+        // Find the move by its ID
         $move = Move::find($id);
 
         if (!$move) {
@@ -101,11 +115,12 @@ class MoveController extends Controller
             return response()->json(['error' => 'User not found'], 404);
         }
 
-        // Append the user object to the move
-        $move->sales_representative_object = $user;
-
-        // Return the move with the user object included
-        return $move;
+        // Check if the user is an admin or belongs to the store
+        if ($user->store == $move->store || $user->user_type == 'admin') {
+            return response()->json(['data' => $move], 200);
+        } else {
+            return response()->json(['error' => 'You need to be an admin or belong to this store'], 403);
+        }
     }
 
     /**
@@ -113,9 +128,16 @@ class MoveController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $move = Move::find($id);
+        $move = Move::findOrFail($id);
+        $user = Auth::user();
+
+        // Check if the user is an admin or belongs to the store
+        if ($user->user_type != 'admin' && $user->store != $move->store) {
+            return response()->json(['error' => 'forbidden', 'message' => 'You need to belong to this store'], 403);
+        }
+
         $move->update($request->all());
-        return $move;
+        return response()->json(['data' => $move], 200);
     }
 
     /**
@@ -123,9 +145,15 @@ class MoveController extends Controller
      */
     public function destroy(string $id)
     {
-    
-        return Move::destroy($id);
-    }
+        $move = Move::findOrFail($id);
+        $user = Auth::user();
 
-    
+        // Check if the user is an admin or belongs to the store
+        if ($user->user_type != 'admin' && $user->store != $move->store) {
+            return response()->json(['error' => 'forbidden', 'message' => 'You need to belong to this store'], 403);
+        }
+
+        $move->delete();
+        return response()->json(['message' => 'Move deleted successfully'], 200);
+    }
 }
