@@ -91,6 +91,11 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
+        $userCount = User::count();
+        if ($userCount < 1) {
+            return "There are $userCount users in the database.";
+        }
+
         
         try {
             // Check email

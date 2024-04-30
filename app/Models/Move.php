@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\Store;
+use App\Models\Lead;
 
 
 class Move extends Model
@@ -33,6 +34,11 @@ class Move extends Model
     public function store()
     {
         return $this->belongsTo(Store::class);
+    }
+
+    public function lead()
+    {
+        return $this->belongsTo(Lead::class);
     }
 
  

@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('leads', function (Blueprint $table) {
             $table->id();
+            $table->date('date');
+            $table->string('name');
+            $table->string('location');
+            $table->string('apartment_name')->nullable();
+            $table->string('area');
+            $table->string('phone_number');
+            $table->string('designation');
+            $table->string('store');
             $table->timestamps();
         });
     }

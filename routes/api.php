@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\MoveController;
+use App\Http\Controllers\LeadController;
 use App\Models\User;
 
 /*
@@ -56,3 +57,10 @@ Route::middleware('auth:sanctum')->get('/all-stores', [StoreController::class, '
  */
 Route::middleware('auth:sanctum')->post('/register-move', [MoveController::class, 'create_move']);  
 Route::middleware('auth:sanctum')->get('/all-moves', [MoveController::class, 'index']);
+
+/**
+ * Lead
+ */
+Route::middleware('auth:sanctum')->post('/register-lead', [LeadController::class, 'create_lead']);  
+Route::middleware('auth:sanctum')->get('/all-leads', [LeadController::class, 'index']);
+

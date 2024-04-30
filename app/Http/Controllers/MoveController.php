@@ -43,8 +43,13 @@ class MoveController extends Controller
         }
 
         // check if the sales rep is in the same excact store
-        $sales_rep_store = User::where('id', $request->sales_representative);
-        if (!$sales_rep_store){
+        $user = User::findOrFail($request->sales_representative);
+
+        if(!$user){
+            return response->json(['error'=> 'User does not exists']);
+        }
+
+        if ($request->store != $user->store){
             return response()->json(['error' => 'forbidden', 'message' => 'The sales rep does not belong to your store'], 403);
         }
     
@@ -69,7 +74,7 @@ class MoveController extends Controller
             return response()->json($move, 201);
         } catch (\Exception $e) {
             // Handle server errors
-            return response()->json(['error' => 'internal_server_error', 'message' => 'Failed to create move. Please try again later.'], 500);
+            return response()->json(['error' => 'internal_server_error'.$e, 'message' => 'Failed to create move. Please try again later.'], 500);
         }
     }
     
