@@ -20,7 +20,7 @@ class EmailController extends Controller
              * Notify us of a possible lead
              */
             Mail::send('mail.mail', $data, function ($message) use ($data) {
-                $message->to('samfastone@gmail.com', 'Keja Move')
+                $message->to('joshuamutua39@gmail.com', 'Keja Move')
                         ->subject('Possible Move')
                         ->from($data['from_email'], $data['from_name']);
             });

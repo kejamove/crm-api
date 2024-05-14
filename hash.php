@@ -8,7 +8,7 @@ $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 use Illuminate\Support\Facades\Hash;
 
 // Your password to be hashed
-$passwordToHash = '1234';
+$passwordToHash = '123456';
 
 // Hash the password
 $hashedPassword = Hash::make($passwordToHash);

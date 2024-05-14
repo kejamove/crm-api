@@ -43,6 +43,8 @@ Route::post('/login', [AuthController::class, 'login']);
  */
 Route::middleware('auth:sanctum')->get('/all-users', [AuthController::class, 'get_all_users']);
 Route::middleware('auth:sanctum')->get('/active-user', [AuthController::class, 'get_current_logged_in_user']);
+Route::middleware('auth:sanctum')->get('/user-data', [AuthController::class, 'get_user_data']);
+
 
 
 /**
@@ -50,6 +52,7 @@ Route::middleware('auth:sanctum')->get('/active-user', [AuthController::class, '
  */
 Route::middleware('auth:sanctum')->post('/register-store', [StoreController::class, 'store']);
 Route::middleware('auth:sanctum')->get('/all-stores', [StoreController::class, 'index']);
+Route::middleware('auth:sanctum')->get('/store-data', [StoreController::class, 'get_store_data']);
 
 
 /**
@@ -60,10 +63,14 @@ Route::middleware('auth:sanctum')->get('/all-moves', [MoveController::class, 'in
 Route::middleware('auth:sanctum')->get('/all-moves/{id}', [MoveController::class, 'show']);
 Route::middleware('auth:sanctum')->patch('/all-moves/{id}', [MoveController::class, 'update']);
 Route::middleware('auth:sanctum')->delete('/all-moves/{id}', [MoveController::class, 'destroy']);
+Route::middleware('auth:sanctum')->get('/move-data', [MoveController::class, 'get_move_data']);
+
 
 /**
  * Lead
  */
 Route::middleware('auth:sanctum')->post('/register-lead', [LeadController::class, 'create_lead']);  
 Route::middleware('auth:sanctum')->get('/all-leads', [LeadController::class, 'index']);
+Route::middleware('auth:sanctum')->get('/lead-data', [LeadController::class, 'get_lead_data']);
+
 

@@ -121,19 +121,48 @@ class AuthController extends Controller
         
         } catch (ValidationException $e) {
             // Handle validation errors
-            return response()->json($e->errors(), 422);
-        
-        } catch (\Illuminate\Database\QueryException $e) {
+            return response()->json([
+                'errors' => [
+                    'message' => 'The given data was invalid.',
+                    'errors' => $e->errors()
+                ]
+            ], 422);
+        } catch (QueryException $e) {
             // Handle database query errors
-            return response()->json(['message' => 'Database error occurred', 'error' => $e->getMessage()], 500);
-        
-        } catch (\Illuminate\Auth\AuthenticationException $e) {
+            return response()->json([
+                'message' => 'Database error occurred',
+                'error' => $e->getMessage()
+            ], 500);
+        } catch (AuthenticationException $e) {
             // Handle authentication errors
-            return response()->json(['message' => 'Authentication failed', 'error' => $e->getMessage()], 401);
-        
+            return response()->json([
+                'message' => 'Authentication failed',
+                'error' => $e->getMessage()
+            ], 401);
+        } catch (AuthorizationException $e) {
+            // Handle authorization errors
+            return response()->json([
+                'message' => 'Authorization failed',
+                'error' => $e->getMessage()
+            ], 403);
+        } catch (ModelNotFoundException $e) {
+            // Handle model not found errors
+            return response()->json([
+                'message' => 'Resource not found',
+                'error' => $e->getMessage()
+            ], 404);
+        } catch (HttpException $e) {
+            // Handle HTTP errors
+            return response()->json([
+                'message' => 'HTTP error occurred',
+                'error' => $e->getMessage()
+            ], $e->getStatusCode());
         } catch (\Exception $e) {
             // Handle other exceptions
-            return response()->json(['message' => 'Unexpected error occurred', 'error' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => 'Unexpected error occurred',
+                'error' => $e->getMessage()
+            ], 500);
         }
         
 
@@ -192,5 +221,24 @@ class AuthController extends Controller
         }
     }
 
+     /**
+     * Display Info about the resources
+     */
+
+     public function get_user_data() 
+     {
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            // only admin can see all stores
+            if ($user->tokenCan('admin')) {
+                return response()->json(['count' => count(User::all())]);
+            }else {
+                return response()->json(['message' => 'Unauthorized. Missing required permissions: Admin'], 403);
+            }
+        }else {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+     }
         
 }

@@ -90,4 +90,24 @@ class LeadController extends Controller
         }
         
     }
+
+     /**
+     * Display Info about the resources
+     */
+
+     public function get_lead_data() 
+     {
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            // only admin can see all stores
+            if ($user->tokenCan('admin')) {
+                return response()->json(['count' => count(Lead::all()) ]);
+            }else {
+                return response()->json(['message' => 'Unauthorized. Missing required permissions: Admin'], 403);
+            }
+        }else {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+     }
 }
