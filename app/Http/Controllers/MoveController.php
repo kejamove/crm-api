@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Move;
 use App\Models\User;
 use App\Helpers;
+use Illuminate\Support\Facades\DB;
 
 class MoveController extends Controller
 {
@@ -175,6 +176,43 @@ class MoveController extends Controller
         }else {
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
-     }
+    }
+
+    /**
+     * Data on moves per month
+     */
+    public function get_moves_per_month($year)
+    {
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            // only admin can see all stores
+            if ($user->tokenCan('admin')) {
+                $moveData = Move::select(
+                    DB::raw('MONTH(move_request_received_at) as month'),
+                    DB::raw('COUNT(*) as count')
+                )
+                ->whereYear('move_request_received_at', $year)
+                ->groupBy('month')
+                ->orderBy('month')
+                ->get();
+        
+                // Prepare the data for the response
+                $formattedData = $moveData->map(function($item) {
+                    return [
+                        'month' => $item->month,
+                        'count' => $item->count,
+                    ];
+                });
+        
+                return response()->json($formattedData);
+            }else {
+                return response()->json(['message' => 'Unauthorized. Missing required permissions: Admin'], 403);
+            }
+        }else {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+        
+    }
 
 }

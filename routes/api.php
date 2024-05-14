@@ -64,6 +64,7 @@ Route::middleware('auth:sanctum')->get('/all-moves/{id}', [MoveController::class
 Route::middleware('auth:sanctum')->patch('/all-moves/{id}', [MoveController::class, 'update']);
 Route::middleware('auth:sanctum')->delete('/all-moves/{id}', [MoveController::class, 'destroy']);
 Route::middleware('auth:sanctum')->get('/move-data', [MoveController::class, 'get_move_data']);
+Route::middleware('auth:sanctum')->post('/moves-per-month/{year}', [MoveController::class, 'get_moves_per_month']);
 
 
 /**

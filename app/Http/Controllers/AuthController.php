@@ -170,56 +170,91 @@ class AuthController extends Controller
     
     }
 
-   
-    
-    public function create_move(Request $request)
-    {
+
+    public function register_user(Request $request) {
+        // Ensure the user is authenticated
+        if (!Auth::check()) {
+            return response()->json([
+                'message' => 'You must be logged in to perform this action'
+            ], 401);
+        }
+
+        // Get the authenticated user
         $user = Auth::user();
+        $requiredFields = [
+            'email',
+            'password',
+            'user_type',
+            'first_name',
+            'last_name',
+        ];
 
-        // Check if the user is authorized to create a move
-        // You can customize the authorization logic based on your requirements
-        if ($user->can('store_owner' || 'admin' || 'sales')) {
+        // Validate request fields
+        $fields = $request->validate([
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'user_type' => 'required|string',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+        ]);
 
-            // Validate incoming request data   
-            $fields = $request->validate([
-                'lead_source' => 'required|string',
-                'consumer_name' => 'nullable|string',
-                'corporate_name' => 'nullable|string',
-                'contact_information' => 'required|string',
-                'moving_from' => 'required|string',
-                'moving_to' => 'required|string',
-                'sales_representative' => 'nullable|exists:users,id',
-                'store' => 'required|exists:stores,id',
-                'invoiced_amount' => 'nullable|string',
-                'notes' => 'nullable|string',
-            ]);
-
-            try {
-                // Create the move
-                $move = Move::create($fields);
-
-                // Validate move creation
-                if (!$move) {
-                    return response()->json(['error' => 'Failed to create move.'], 500);
-                }
-
-                // Return successful response
-                return response()->json($move, 201);
-
-            } catch (ValidationException $e) {
-                // Handle validation errors
-                return response()->json(['error' => 'Validation failed.', 'details' => $e->errors()], 422);
-            
-            } catch (\Exception $e) {
-                // Handle other exceptions
-                return response()->json(['error' => 'Server error.', 'details' => $e->getMessage()], 500);
-            
+        // Check if the authenticated user is an admin
+        if ($fields['user_type'] == 'admin'){
+            if (!$user->tokenCan('admin')) {
+                return response()->json([
+                    'message' => 'Only admin users can create another admin user'
+                ], 403);
             }
+        }
 
-        } else {
-            return response()->json(['error' => 'Unauthorized.', 'message' => 'You are not authorized to create a move.'], 403);
+        $phone_number_full = $request->phone_country_code . $request->phone_local_number;
+
+        try {
+        
+            // Create user token with abilities of the given user type
+            // Generate token
+            $newUser = User::create(array_merge($request->all(), ['phone_number_full' => $phone_number_full]));
+
+            // Generate token
+            $token = $newUser->createToken('kejamovetoken', [$newUser->user_type])->plainTextToken;
+
+            // Update user with token
+            $newUser->update(['remember_token' => $token]);
+
+
+            // Output
+            $response = [
+                'user' => $newUser,
+                'token' => $token
+            ];
+
+            // Response 
+            return response($response, 201);
+
+        } catch (ValidationException $e) {
+            // Handle validation errors
+            return response()->json([
+                'errors' => [
+                    'message' => 'The given data was invalid.',
+                    'errors' => $e->errors()
+                ]
+            ], 422);
+        } catch (QueryException $e) {
+            // Handle database query errors
+            return response()->json([
+                'message' => 'Database error occurred',
+                'error' => $e->getMessage()
+            ], 500);
+        } catch (\Exception $e) {
+            // Handle other exceptions
+            return response()->json([
+                'message' => 'Unexpected error occurred',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
+
+    
 
      /**
      * Display Info about the resources
