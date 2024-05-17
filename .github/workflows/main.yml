@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Make composer executable
-        run: chmod +x /home/kejadigital/www/test.kejadigital.com/composer
+        run: pwd
 
       - name: Run deployment script
         run: |
