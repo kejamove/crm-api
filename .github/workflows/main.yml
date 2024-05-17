@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Make composer executable
-        run: pwd
+        run: ls
 
       - name: Run deployment script
         run: |
