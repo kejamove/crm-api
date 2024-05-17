@@ -1,6 +1,4 @@
-# .github/workflows/deploy.yml
-
-name: Deploy to Production
+name: Deployment
 
 on:
   push:
@@ -9,37 +7,20 @@ on:
 
 jobs:
   deploy:
-    name: Deploy
+    name: Deploy to Production
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install PHP and dependencies
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-
-      - name: Install Composer dependencies
-        run: /home/kejadigital/www/test.kejadigital.com/composer install --no-interaction --prefer-dist --optimize-autoloader
-
-      - name: CHANGE DIR
-        run: cd ~
-
-      - name: Run tests
-        run: php artisan test
-
-      - name: Configure SSH
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Deploy to production
-        uses: easingthemes/ssh-deploy@v2
-        with:
-          server: ${{ secrets.PRODUCTION_SERVER }}
-          username: ${{ secrets.PRODUCTION_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }} # Only if your SSH key is protected by a passphrase
-          source: "." # Local directory to deploy
-          target: "/home/kejadigital/www/test.kejadigital.com" # Remote directory to deploy
+      - name: Run deployment script
+        run: |
+          echo "Starting deployment..."
+          export COMPOSER_HOME=/home/kejadigital/.composer
+          /home/kejadigital/www/test.kejadigital.com/composer install --no-dev --optimize-autoloader
+          php /home/kejadigital/www/test.kejadigital.com/artisan key:generate
+          php /home/kejadigital/www/test.kejadigital.com/artisan config:cache
+          php /home/kejadigital/www/test.kejadigital.com/artisan route:cache
+          php /home/kejadigital/www/test.kejadigital.com/artisan view:cache
+          echo "Deployment finished."
