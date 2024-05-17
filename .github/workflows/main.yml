@@ -19,8 +19,7 @@ jobs:
           echo "Starting deployment..."
           export COMPOSER_HOME=/home/kejadigital/.composer
           composer install --no-dev --optimize-autoloader
-          php /home/kejadigital/www/test.kejadigital.com/artisan key:generate
-          php /home/kejadigital/www/test.kejadigital.com/artisan config:cache
-          php /home/kejadigital/www/test.kejadigital.com/artisan route:cache
-          php /home/kejadigital/www/test.kejadigital.com/artisan view:cache
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
           echo "Deployment finished."
