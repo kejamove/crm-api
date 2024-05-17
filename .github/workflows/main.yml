@@ -20,10 +20,14 @@ jobs:
         with:
           php-version: '8.3'
 
-      - name: EXPORT COMPOSER
-        run: export COMPOSER_HOME=/home/kejadigital/.composer
+      - name: CHANGE DIR
+        run: cd /home/kejadigital/www/test.kejadigital.com
+        
       - name: RUN COMPOSER
-        run:   /home/kejadigital/www/test.kejadigital.com/composer install --no-dev --optimize-autoloader
+        run:  composer install --no-dev --optimize-autoloader
+
+      - name: CHANGE DIR
+        run: cd ~
 
       - name: Run tests
         run: php artisan test
