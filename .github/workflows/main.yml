@@ -14,14 +14,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Make composer executable
-        run: ls
-
       - name: Run deployment script
         run: |
           echo "Starting deployment..."
           export COMPOSER_HOME=/home/kejadigital/.composer
-          /home/kejadigital/www/test.kejadigital.com/composer install --no-dev --optimize-autoloader
+          composer install --no-dev --optimize-autoloader
           php /home/kejadigital/www/test.kejadigital.com/artisan key:generate
           php /home/kejadigital/www/test.kejadigital.com/artisan config:cache
           php /home/kejadigital/www/test.kejadigital.com/artisan route:cache
