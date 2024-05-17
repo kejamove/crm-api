@@ -18,10 +18,12 @@ jobs:
       - name: Install PHP and dependencies
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '7.4'
+          php-version: '8.3'
 
-      - name: Install Composer dependencies
-        run: /home/kejadigital/www/test.kejadigital.com/composer install --no-interaction --prefer-dist --optimize-autoloader
+      - name: EXPORT COMPOSER
+        run: export COMPOSER_HOME=/home/kejadigital/.composer
+      - name: RUN COMPOSER
+        run:  /opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Run tests
         run: php artisan test
