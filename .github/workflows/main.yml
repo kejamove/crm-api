@@ -1,0 +1,42 @@
+# .github/workflows/deploy.yml
+
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install PHP and dependencies
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+
+      - name: Install Composer dependencies
+        run: /home/kejadigital/www/test.kejadigital.com/composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Run tests
+        run: php artisan test
+
+      - name: Configure SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to production
+        uses: easingthemes/ssh-deploy@v2
+        with:
+          server: ${{ secrets.PRODUCTION_SERVER }}
+          username: ${{ secrets.PRODUCTION_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }} # Only if your SSH key is protected by a passphrase
+          source: "." # Local directory to deploy
+          target: "/home/kejadigital/www/test.kejadigital.com" # Remote directory to deploy
