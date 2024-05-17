@@ -23,7 +23,7 @@ jobs:
       - name: EXPORT COMPOSER
         run: export COMPOSER_HOME=/home/kejadigital/.composer
       - name: RUN COMPOSER
-        run:  /opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader
+        run:   /home/kejadigital/www/test.kejadigital.com/composer install --no-dev --optimize-autoloader
 
       - name: Run tests
         run: php artisan test
