@@ -20,11 +20,8 @@ jobs:
         with:
           php-version: '8.3'
 
-      - name: CHANGE DIR
-        run: cd /home/kejadigital/www/test.kejadigital.com
-        
-      - name: RUN COMPOSER
-        run:  composer install --no-dev --optimize-autoloader
+      - name: Install Composer dependencies
+        run: /home/kejadigital/www/test.kejadigital.com/composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: CHANGE DIR
         run: cd ~
