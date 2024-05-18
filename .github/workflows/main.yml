@@ -23,3 +23,5 @@ jobs:
           php artisan route:cache
           php artisan view:cache
           echo "Deployment finished."
+
+# While switching db , make sure to : Generate Key, Make Migrations then Migrate

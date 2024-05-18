@@ -75,3 +75,10 @@ Route::middleware('auth:sanctum')->get('/all-leads', [LeadController::class, 'in
 Route::middleware('auth:sanctum')->get('/lead-data', [LeadController::class, 'get_lead_data']);
 
 
+// COMPOSER HOME DIR
+/**
+ * /home/kejadigital/www/test.kejadigital.com/composer
+*/
+
+
+
