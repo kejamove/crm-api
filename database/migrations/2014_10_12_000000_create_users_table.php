@@ -18,11 +18,12 @@ return new class extends Migration
             $table->string('last_name');
             $table->string('phone_local_number')->unique();
             $table->string('phone_country_code');
-            $table->string('phone_number_full');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->unsignedBigInteger('store')->nullable(); // this points to the store Id
-            $table->foreign('store')->references('id')->on('stores')->onDelete('set null');
+            $table->unsignedBigInteger('firm')->nullable(); // this points to the store Id
+            $table->foreign('firm')->references('id')->on('firms')->onDelete('cascade');
+            $table->unsignedBigInteger('branch')->nullable(); // this points to the store Id
+            $table->foreign('branch')->references('id')->on('branchs')->onDelete('cascade');
             $table->string('password');
             $table->string('user_type')->default(RoleEnum::client->value);
             $table->rememberToken();

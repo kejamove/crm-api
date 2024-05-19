@@ -74,7 +74,7 @@ class AuthController extends Controller
     public function logout(Request $request){
 
         $user = Auth::user();
-    
+
         if ($user) {
             $user->tokens()->delete();
             return response()->json(['message' => 'Successfully logged out'], 200);
@@ -96,29 +96,29 @@ class AuthController extends Controller
             return "There are $userCount users in the database.";
         }
 
-        
+
         try {
             // Check email
             $user = User::where('email', $fields['email'])->first();
-        
+
             // Check if user exists and if password is correct
             if (!$user || !Hash::check($fields['password'], optional($user)->password)) {
                 // Incorrect credentials
                 return response(['message' => 'Bad Credentials'], 401);
             }
-        
+
             // Create user token with abilities of the given user type
             $token = $user->createToken('kejamovetoken', [$user['user_type']])->plainTextToken;
-        
+
             // Output
             $response = [
                 'user' => $user,
                 'token' => $token
             ];
-        
-            // Response 
+
+            // Response
             return response($response, 200);
-        
+
         } catch (ValidationException $e) {
             // Handle validation errors
             return response()->json([
@@ -164,10 +164,10 @@ class AuthController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
-        
 
 
-    
+
+
     }
 
 
@@ -207,13 +207,12 @@ class AuthController extends Controller
             }
         }
 
-        $phone_number_full = $request->phone_country_code . $request->phone_local_number;
 
         try {
-        
+
             // Create user token with abilities of the given user type
             // Generate token
-            $newUser = User::create(array_merge($request->all(), ['phone_number_full' => $phone_number_full]));
+            $newUser = User::create($request->all());
 
             // Generate token
             $token = $newUser->createToken('kejamovetoken', [$newUser->user_type])->plainTextToken;
@@ -228,7 +227,7 @@ class AuthController extends Controller
                 'token' => $token
             ];
 
-            // Response 
+            // Response
             return response($response, 201);
 
         } catch (ValidationException $e) {
@@ -254,20 +253,18 @@ class AuthController extends Controller
         }
     }
 
-    
-
      /**
      * Display Info about the resources
      */
 
-     public function get_user_data() 
+     public function get_user_data()
      {
         if (Auth::check()) {
             $user = Auth::user();
 
             // only admin can see all stores
             if ($user->tokenCan('admin')) {
-                return response()->json(['count' => count(User::all())]);
+                return response()->json(['count' => User::count()]);
             }else {
                 return response()->json(['message' => 'Unauthorized. Missing required permissions: Admin'], 403);
             }
@@ -275,5 +272,5 @@ class AuthController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
      }
-        
+
 }
