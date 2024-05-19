@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+//use Illuminate\Foundation\Auth\User;
 use App\Enums\RoleEnum;
 
 class User extends Authenticatable
@@ -26,14 +27,19 @@ class User extends Authenticatable
         'password',
         'phone_local_number',
         'phone_country_code',
-        'phone_number_full',
         'user_type',
-        'store',
+        'firm',
+        'branch',
     ];
 
-    public function store()
+    public function firm()
     {
-        return $this->belongsTo(Store::class);
+        return $this->belongsTo(Firm::class);
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
     }
 
     /**
@@ -56,4 +62,5 @@ class User extends Authenticatable
         'password' => 'hashed',
         'user_type'=> RoleEnum::class,
     ];
+
 }
