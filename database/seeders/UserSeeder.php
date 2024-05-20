@@ -18,14 +18,14 @@ class UserSeeder extends Seeder
         User::create([
             'first_name' => 'Brian',
             'last_name' => 'Kaleli',
-            'phone_local_number' => '795083961',
+            'phone_local_number' => '795083967',
             'phone_country_code' => '+1',
             'email' => 'briankaleli@gmail.com',
             'email_verified_at' => now(),
             'firm' => null,
             'branch' => null,
             'password' => Hash::make('12345678'),
-            'user_type' => RoleEnum::admin->value,
+            'user_type' => RoleEnum::super_admin->value,
         ]);
 
         User::create([
@@ -38,7 +38,7 @@ class UserSeeder extends Seeder
             'firm' => null,
             'branch' => null,
             'password' => Hash::make('12345678'),
-            'user_type' => RoleEnum::admin->value,
+            'user_type' => RoleEnum::super_admin->value,
         ]);
 
         User::create([
@@ -51,7 +51,7 @@ class UserSeeder extends Seeder
             'firm' => null,
             'branch' => null,
             'password' => Hash::make('12345678'),
-            'user_type' => RoleEnum::admin->value,
+            'user_type' => RoleEnum::super_admin->value,
         ]);
 
         User::create([
@@ -64,7 +64,7 @@ class UserSeeder extends Seeder
             'firm' => 1,
             'branch' => null,
             'password' => Hash::make('12345678'),
-            'user_type' => RoleEnum::store_owner->value,
+            'user_type' => RoleEnum::firm_owner->value,
         ]);
 
         User::create([
