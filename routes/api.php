@@ -21,10 +21,6 @@ use App\Models\User;
 |
 */
 
-
-Route::resource('products', ProductController::class);
-Route::get('products/search/{product_name}', [ProductController::class, 'search']);
-
 /**
  * Email Notifications
  */
@@ -45,8 +41,6 @@ Route::middleware(['auth:sanctum','throttle:1000,1'])->get('/list-users', [AuthC
 Route::middleware('auth:sanctum')->get('/active-user', [AuthController::class, 'get_current_logged_in_user']);
 Route::middleware('auth:sanctum')->get('/user-data', [AuthController::class, 'get_user_data']);
 
-
-
 /**
  * CRUD Operations on a Firm
  */
@@ -54,8 +48,11 @@ Route::middleware('auth:sanctum')->get('/list-firms', [\App\Http\Controllers\Fir
 Route::middleware('auth:sanctum')->get('/list-firms/{id}', [\App\Http\Controllers\FirmController::class, 'show']);
 Route::middleware('auth:sanctum')->post('/register-firm', [\App\Http\Controllers\FirmController::class, 'store']);
 Route::middleware('auth:sanctum')->put('/update-firm/{id}', [\App\Http\Controllers\FirmController::class, 'update']);
+Route::middleware('auth:sanctum')->delete('/delete-firm/{id}', [\App\Http\Controllers\FirmController::class, 'destroy']);
 
-
+/**
+ * CRUD Operations on a Branch
+ */
 Route::middleware('auth:sanctum')->post('/register-branch', [\App\Http\Controllers\BranchController::class, 'store']);
 Route::middleware('auth:sanctum')->get('/list-branches', [\App\Http\Controllers\BranchController::class, 'index']);
 Route::middleware('auth:sanctum')->get('/list-branches/{id}', [\App\Http\Controllers\BranchController::class, 'show']);
@@ -64,7 +61,7 @@ Route::middleware('auth:sanctum')->get('/store-data', [StoreController::class, '
 
 
 /**
- * Move
+ * CRUD Operations on a Move
  */
 Route::middleware('auth:sanctum')->post('/register-move', [MoveController::class, 'create_move']);
 Route::middleware('auth:sanctum')->get('/all-moves', [MoveController::class, 'index']);
@@ -73,14 +70,6 @@ Route::middleware('auth:sanctum')->put('/update-move/{id}', [MoveController::cla
 Route::middleware('auth:sanctum')->delete('/delete-move/{id}', [MoveController::class, 'destroy']);
 Route::middleware('auth:sanctum')->get('/move-data', [MoveController::class, 'get_move_data']);
 Route::middleware('auth:sanctum')->post('/moves-per-month/{year}', [MoveController::class, 'get_moves_per_month']);
-
-
-/**
- * Lead
- */
-Route::middleware('auth:sanctum')->post('/register-lead', [LeadController::class, 'create_lead']);
-Route::middleware('auth:sanctum')->get('/all-leads', [LeadController::class, 'index']);
-Route::middleware('auth:sanctum')->get('/lead-data', [LeadController::class, 'get_lead_data']);
 
 
 // COMPOSER HOME DIR
