@@ -23,9 +23,9 @@ return new class extends Migration
             $table->unsignedBigInteger('firm')->nullable(); // this points to the store Id
             $table->foreign('firm')->references('id')->on('firms')->onDelete('cascade');
             $table->unsignedBigInteger('branch')->nullable(); // this points to the store Id
-            $table->foreign('branch')->references('id')->on('branchs')->onDelete('cascade');
+            $table->foreign('branch')->references('id')->on('branches')->onDelete('cascade');
             $table->string('password');
-            $table->string('user_type')->default(RoleEnum::client->value);
+            $table->string('user_type')->default(RoleEnum::sales->value);
             $table->rememberToken();
             $table->timestamps();
         });

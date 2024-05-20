@@ -3,12 +3,12 @@ namespace App\Enums;
 
 enum RoleEnum: string
 {
-    case client = 'client';
-    case store_owner = 'store_owner'; // BRANCH MANAGER 
+    case super_admin = 'super_admin'; // SUPER ADMIN
+    case firm_owner = 'firm_owner';
+    case branch_manager = 'branch_manager';
     case project_manager = 'project_manager';
     case sales = 'sales';
     case marketing = 'marketing';
-    case admin = 'admin'; // SUPER ADMIN
 }
 
 ?>

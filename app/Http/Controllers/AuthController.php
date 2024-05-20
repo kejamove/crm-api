@@ -2,31 +2,31 @@
 
 namespace App\Http\Controllers;
 
-
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
-use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum')->except(['login']);
+    }
 
-    public function get_all_users (){
+    public function index()
+    {
         $user = Auth::user();
 
         if (!$user) {
-            return response()->json([
-                'message' => 'User not authenticated'
-            ], 401);
+            abort(401, 'User Not Authenticated');
         }
 
-
-        if ($user->tokenCan('admin')) {
+        if ($user->tokenCan('super_admin')) {
             return User::all();
-        }else {
-            return response()->json(['message' => 'Lacking required permissions: Admin'], 403);
+        } else {
+            abort(403, 'Unauthorized action.');
         }
     }
 
@@ -35,7 +35,8 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function get_current_logged_in_user (){
+    public function get_current_logged_in_user()
+    {
         $user = Auth::user();
 
         if ($user) {
@@ -43,36 +44,32 @@ class AuthController extends Controller
 
             // List allowed_urls for every role for frontend authentication
             $all_urls = [
-                /**
-                 * 'url' => 'allowed_role'
-                 */
-                'register_user'=> ['admin', 'store_owner'],
-                'register_store'=> ['admin'],
-                'logout'=> ['admin', 'project_manager', 'sales', 'marketing'],
-                'login'=> ['admin', 'project_manager', 'sales', 'marketing'],
-                'all_users'=> ['admin'],
+                'register_user' => ['super_admin', 'store_owner'],
+                'register_store' => ['super_admin', 'store_owner'],
+                'logout' => ['super_admin', 'project_manager', 'sales', 'marketing'],
+                'login' => ['super_admin', 'project_manager', 'sales', 'marketing'],
+                'all_users' => ['super_admin'],
             ];
 
-
             $my_allowed_urls = [];
-            // $all_urls.foreach(u)
-
+            foreach ($all_urls as $url => $roles) {
+                if (in_array($user_type, $roles)) {
+                    $my_allowed_urls[] = $url;
+                }
+            }
 
             return response()->json([
                 'user' => $user,
                 'user_type' => $user_type,
                 'allowed_urls' => $my_allowed_urls
             ]);
-
         } else {
-            return response()->json([
-                'message' => 'User not authenticated'
-            ], 401);
+            abort(401, 'Unauthenticated action.');
         }
     }
 
-    public function logout(Request $request){
-
+    public function logout(Request $request)
+    {
         $user = Auth::user();
 
         if ($user) {
@@ -81,113 +78,47 @@ class AuthController extends Controller
         } else {
             return response()->json(['message' => 'There is no logged-in user'], 404);
         }
-
     }
 
-    public function login(Request $request) {
-
+    public function login(Request $request)
+    {
         $fields = $request->validate([
-            'email' => 'required',
-            'password' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|string',
         ]);
 
-        $userCount = User::count();
-        if ($userCount < 1) {
-            return "There are $userCount users in the database.";
+        if (User::count() < 1) {
+            return "There are no users in the database.";
         }
 
+        // Check email and password
+        $user = User::where('email', $fields['email'])->first();
 
-        try {
-            // Check email
-            $user = User::where('email', $fields['email'])->first();
-
-            // Check if user exists and if password is correct
-            if (!$user || !Hash::check($fields['password'], optional($user)->password)) {
-                // Incorrect credentials
-                return response(['message' => 'Bad Credentials'], 401);
-            }
-
-            // Create user token with abilities of the given user type
-            $token = $user->createToken('kejamovetoken', [$user['user_type']])->plainTextToken;
-
-            // Output
-            $response = [
-                'user' => $user,
-                'token' => $token
-            ];
-
-            // Response
-            return response($response, 200);
-
-        } catch (ValidationException $e) {
-            // Handle validation errors
-            return response()->json([
-                'errors' => [
-                    'message' => 'The given data was invalid.',
-                    'errors' => $e->errors()
-                ]
-            ], 422);
-        } catch (QueryException $e) {
-            // Handle database query errors
-            return response()->json([
-                'message' => 'Database error occurred',
-                'error' => $e->getMessage()
-            ], 500);
-        } catch (AuthenticationException $e) {
-            // Handle authentication errors
-            return response()->json([
-                'message' => 'Authentication failed',
-                'error' => $e->getMessage()
-            ], 401);
-        } catch (AuthorizationException $e) {
-            // Handle authorization errors
-            return response()->json([
-                'message' => 'Authorization failed',
-                'error' => $e->getMessage()
-            ], 403);
-        } catch (ModelNotFoundException $e) {
-            // Handle model not found errors
-            return response()->json([
-                'message' => 'Resource not found',
-                'error' => $e->getMessage()
-            ], 404);
-        } catch (HttpException $e) {
-            // Handle HTTP errors
-            return response()->json([
-                'message' => 'HTTP error occurred',
-                'error' => $e->getMessage()
-            ], $e->getStatusCode());
-        } catch (\Exception $e) {
-            // Handle other exceptions
-            return response()->json([
-                'message' => 'Unexpected error occurred',
-                'error' => $e->getMessage()
-            ], 500);
+        if (!$user || !Hash::check($fields['password'], $user->password)) {
+            abort(401,'Bad credentials.');
         }
 
+        // Create user token with abilities of the given user type
+        $token = $user->createToken('kejamovetoken', [$user->user_type])->plainTextToken;
 
+        // Output
+        $response = [
+            'user' => $user,
+            'token' => $token
+        ];
 
-
+        return response($response, 200);
     }
 
-
-    public function register_user(Request $request) {
+    public function register_user(Request $request)
+    {
         // Ensure the user is authenticated
         if (!Auth::check()) {
-            return response()->json([
-                'message' => 'You must be logged in to perform this action'
-            ], 401);
+            abort(401, 'Unauthenticated action.');
         }
 
         // Get the authenticated user
         $user = Auth::user();
-        $requiredFields = [
-            'email',
-            'password',
-            'user_type',
-            'first_name',
-            'last_name',
-        ];
 
         // Validate request fields
         $fields = $request->validate([
@@ -199,78 +130,50 @@ class AuthController extends Controller
         ]);
 
         // Check if the authenticated user is an admin
-        if ($fields['user_type'] == 'admin'){
-            if (!$user->tokenCan('admin')) {
-                return response()->json([
-                    'message' => 'Only admin users can create another admin user'
-                ], 403);
-            }
+        if ($fields['user_type'] == 'super_admin' && !$user->tokenCan('super_admin')) {
+            abort(403, 'Unauthorized action. Only super admin can access this page.');
         }
 
+        // Create the new user
+        $newUser = User::create([
+            'email' => $fields['email'],
+            'password' => Hash::make($fields['password']),
+            'user_type' => $fields['user_type'],
+            'first_name' => $fields['first_name'],
+            'last_name' => $fields['last_name'],
+        ]);
 
-        try {
+        // Generate token
+        $token = $newUser->createToken('kejamovetoken', [$newUser->user_type])->plainTextToken;
 
-            // Create user token with abilities of the given user type
-            // Generate token
-            $newUser = User::create($request->all());
+        // Update user with token
+        $newUser->update(['remember_token' => $token]);
 
-            // Generate token
-            $token = $newUser->createToken('kejamovetoken', [$newUser->user_type])->plainTextToken;
+        // Output
+        $response = [
+            'user' => $newUser,
+            'token' => $token
+        ];
 
-            // Update user with token
-            $newUser->update(['remember_token' => $token]);
-
-
-            // Output
-            $response = [
-                'user' => $newUser,
-                'token' => $token
-            ];
-
-            // Response
-            return response($response, 201);
-
-        } catch (ValidationException $e) {
-            // Handle validation errors
-            return response()->json([
-                'errors' => [
-                    'message' => 'The given data was invalid.',
-                    'errors' => $e->errors()
-                ]
-            ], 422);
-        } catch (QueryException $e) {
-            // Handle database query errors
-            return response()->json([
-                'message' => 'Database error occurred',
-                'error' => $e->getMessage()
-            ], 500);
-        } catch (\Exception $e) {
-            // Handle other exceptions
-            return response()->json([
-                'message' => 'Unexpected error occurred',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response($response, 201);
     }
 
-     /**
+    /**
      * Display Info about the resources
      */
+    public function get_user_data()
+    {
+        $user = Auth::user();
 
-     public function get_user_data()
-     {
-        if (Auth::check()) {
-            $user = Auth::user();
-
-            // only admin can see all stores
-            if ($user->tokenCan('admin')) {
+        if ($user) {
+            // only admin can see all users
+            if ($user->tokenCan('super_admin')) {
                 return response()->json(['count' => User::count()]);
-            }else {
-                return response()->json(['message' => 'Unauthorized. Missing required permissions: Admin'], 403);
+            } else {
+                abort(403, 'Unauthorized Action.');
             }
-        }else {
-            return response()->json(['message' => 'Unauthenticated'], 401);
+        } else {
+            abort(401, 'Unauthenticated action.');
         }
-     }
-
+    }
 }

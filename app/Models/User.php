@@ -34,12 +34,12 @@ class User extends Authenticatable
 
     public function firm()
     {
-        return $this->belongsTo(Firm::class);
+        return $this->belongsTo(Firm::class, 'firm','id');
     }
 
     public function branch()
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Branch::class, 'branch', 'id');
     }
 
     /**
