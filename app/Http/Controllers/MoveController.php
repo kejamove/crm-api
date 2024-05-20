@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Branch;
+use App\Models\Firm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Move;
@@ -27,18 +29,32 @@ class MoveController extends Controller
     {
         $user = Auth::user();
 
-        // Check if the user is an admin && return all moves 
-        if ($user->user_type === 'admin') {
+        // Check if the user is a super admin && return all moves
+        if ($user->tokenCan('super_admin')) {
             return response()->json(['data'=>Move::all()],200);
         }
 
-        // Check if the user belongs to a store
-        if (!$user->store) {
-            return response()->json(['error' => 'forbidden', 'message' => 'You need to belong to a store.'], 403);
+        // firm_owner
+        if ($user->tokenCan('firm_owner')) {
+            $firmId = $user->firm;
+
+            // Retrieve all moves associated with the user's firm
+            $moves = Move::whereHas('branch', function ($query) use ($firmId) {
+                $query->where('firm', $firmId);
+            })->get();
+
+            // Return the moves
+            return response()->json(['moves' => $moves], 200);
         }
 
-        // Return moves belonging to the user's store
-        return response()->json(['data'=>Move::where('store', $user->store)->get()],200);
+        // branch_manager && project_manager
+        if ($user->tokenCan('branch_manager') || $user->tokenCan('project_manager')) {
+            $moves = Move::where('branch', $user->branch)->get();
+            // Return the moves
+            return response()->json(['moves' => $moves], 200);
+        }
+
+        abort(403, 'Unauthorised Action');
     }
 
 
@@ -50,47 +66,44 @@ class MoveController extends Controller
         // Check if the required fields are present
         $request->validate([
             'sales_representative' => 'required',
-            'store' => 'required',
+            'branch' => 'required',
             'moving_from' => 'required',
             'moving_to' => 'required',
             'contact_information' => 'required',
+            'move_stage' => 'required',
         ]);
 
         // Check if the user is authenticated
         $user = Auth::user();
 
-        // Check if the user belongs to a store
-        if (!$user->store) {
-            return response()->json(['error' => 'forbidden', 'message' => 'You need to belong to a store.'], 403);
+        if (!($user->tokenCan('super_admin') || $user->branch == $request->branch)) {
+            abort(403, 'Unauthorised Action!');
         }
 
-        // Check if the sales representative belongs to the user's store
-        $salesRep = User::find($request->sales_representative);
-        if (!$salesRep || $salesRep->store != $user->store) {
-            return response()->json(['error' => 'forbidden', 'message' => 'The sales rep does not belong to your store'], 403);
+
+        if ( !$request->sales_representative || $request->sales_representative !== $user->branch  ) {
+            abort(403, 'The Sales Rep does not belong this branch or does not exist!');
         }
 
-        // Prepare data for move creation
         $data = $request->only([
             'sales_representative',
-            'store',
-            'lead_source',
+            'branch',
+            'move_stage',
             'consumer_name',
             'corporate_name',
             'contact_information',
             'moving_from',
             'moving_to',
             'invoiced_amount',
-            'notes'
+            'notes',
+            'remarks',
+            'lead_source',
         ]);
 
         try {
-            // Create the move
-            $move = Move::create($data);
-            // Return the created move with status code 201 (Created)
-            return response()->json(['data' => $move], 201);
+//            $move = Move::create($data);
+            return response()->json(['data' => $data], 201);
         } catch (\Exception $e) {
-            // Handle server errors
             return response()->json(['error' => 'internal_server_error' . $e, 'message' => 'Failed to create move. Please try again later.'], 500);
         }
     }
@@ -100,28 +113,23 @@ class MoveController extends Controller
      */
     public function show(string $id)
     {
-        // Find the move by its ID
-        $move = Move::find($id);
+        $user = Auth::user();
 
-        if (!$move) {
-            // Handle case where move is not found
-            return response()->json(['error' => 'Move not found'], 404);
+        $move = Move::findOrFail($id);
+
+        // unless you are a super admin , you need to belong to the branch of that move
+        if (!($user->tokenCan('super_admin') || $user->branch == $move->branch)) {
+            abort(403, 'Unauthorised Action!');
         }
 
         // Get the user object for the sales representative
-        $user = User::find($move->sales_representative);
-
-        if (!$user) {
-            // Handle case where user is not found
-            return response()->json(['error' => 'User not found'], 404);
+        if ($move->sales_representative){
+            $sales_rep = User::findOrFail($move->sales_representative);
+            return response()->json(['data' => $move, 'sales_representative_object'=> $sales_rep], 200);
         }
 
-        // Check if the user is an admin or belongs to the store
-        if ($user->store == $move->store || $user->user_type == 'admin') {
-            return response()->json(['data' => $move], 200);
-        } else {
-            return response()->json(['error' => 'You need to be an admin or belong to this store'], 403);
-        }
+        return response()->json(['data' => $move], 200);
+
     }
 
     /**
@@ -132,13 +140,27 @@ class MoveController extends Controller
         $move = Move::findOrFail($id);
         $user = Auth::user();
 
-        // Check if the user is an admin or belongs to the store
-        if ($user->user_type != 'admin' && $user->store != $move->store) {
-            return response()->json(['error' => 'forbidden', 'message' => 'You need to belong to this store'], 403);
+        if (!($user->tokenCan('super_admin') || $user->tokenCan('firm_owner') || $user->tokenCan('branch_manager'))) {
+            abort(403, 'Unauthorised Action!');
         }
 
-        $move->update($request->all());
+        if ($user->tokenCan('branch_manager') && $user->branch != $move->branch){
+            abort(403, 'Unauthorised Action!');
+        }
+
+        $branch = Branch::with('firm')->findOrFail($move->branch);
+
+        if ($user->tokenCan('firm_owner') && $user->firm != $branch->firm) {
+            abort(403, 'Unauthorised. Wrong Firm!');
+        }
+
+        $move->fill($request->only($move->getFillable()));
+        $move->save();
+
+        $move->update($request->only($move->getFillable()));
+
         return response()->json(['data' => $move], 200);
+
     }
 
     /**
@@ -147,11 +169,23 @@ class MoveController extends Controller
     public function destroy(string $id)
     {
         $move = Move::findOrFail($id);
+
         $user = Auth::user();
 
         // Check if the user is an admin or belongs to the store
-        if ($user->user_type != 'admin' && $user->store != $move->store) {
-            return response()->json(['error' => 'forbidden', 'message' => 'You need to belong to this store'], 403);
+        if (!($user->tokenCan('super_admin') || $user->tokenCan('firm_owner') || $user->tokenCan('branch_manager'))) {
+            abort(403, 'Unauthorised Action!');
+        }
+
+        if ($user->tokenCan('branch_manager') && $user->branch != $move->branch){
+            abort(403, 'Unauthorised Action!');
+        }
+
+        $branch = Branch::findOrFail($move->branch);
+
+        if ($user->tokenCan('firm_owner') && $user->firm != $branch->firm) {
+//            return response()->json('sm');
+            abort(403, 'Unauthorised. Wrong Firm!');
         }
 
         $move->delete();
@@ -162,7 +196,7 @@ class MoveController extends Controller
      * Display Info about the resources
      */
 
-     public function get_move_data() 
+     public function get_move_data()
      {
         if (Auth::check()) {
             $user = Auth::user();
@@ -196,7 +230,7 @@ class MoveController extends Controller
                 ->groupBy('month')
                 ->orderBy('month')
                 ->get();
-        
+
                 // Prepare the data for the response
                 $formattedData = $moveData->map(function($item) {
                     return [
@@ -204,7 +238,7 @@ class MoveController extends Controller
                         'count' => $item->count,
                     ];
                 });
-        
+
                 return response()->json($formattedData);
             }else {
                 return response()->json(['message' => 'Unauthorized. Missing required permissions: Admin'], 403);
@@ -212,7 +246,7 @@ class MoveController extends Controller
         }else {
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
-        
+
     }
 
 }

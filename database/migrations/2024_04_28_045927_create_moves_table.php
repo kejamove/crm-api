@@ -19,8 +19,8 @@ return new class extends Migration
         Schema::create('moves', function (Blueprint $table) {
             $table->id();
             $table->date('move_request_received_at')->default(Carbon::now());
-            $table->enum('move_stage', ['new_lead', 'contacted', 'survey_scheduled', 'quote_sent', 'negotiations_started',
-                'proposal', 'won', 'lost'])->default('new_lead');
+            $table->string('move_stage')->default(MoveStage::contacted->value);
+            $table->string('lead_source')->default(\App\Enums\LeadSource::offline_marketing->value);
             $table->string('consumer_name')->nullable();
             $table->string('corporate_name')->nullable();
             $table->string('contact_information');
@@ -28,12 +28,11 @@ return new class extends Migration
             $table->string('moving_to');
             $table->unsignedBigInteger('sales_representative')->nullable();
             $table->foreign('sales_representative')->references('id')->on('users');
-            $table->unsignedBigInteger('store')->nullable();
-            $table->foreign('store')->references('id')->on('stores');
-            $table->unsignedBigInteger('lead')->nullable();
-            $table->foreign('lead')->references('id')->on('leads');
+            $table->unsignedBigInteger('branch')->nullable();
+            $table->foreign('branch')->references('id')->on('branches')->onDelete('cascade');
             $table->string('invoiced_amount')->nullable();
             $table->text('notes')->nullable();
+            $table->text('remarks')->nullable();
             $table->timestamps();
         });
     }
