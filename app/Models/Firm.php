@@ -17,6 +17,6 @@ class Firm extends Model
 
     public function branches()
     {
-        return $this->hasMany(Branch::class);
+        return $this->hasMany(Branch::class, 'firm', 'id');
     }
 }

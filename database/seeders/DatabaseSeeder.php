@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             FirmSeeder::class,
             BranchSeeder::class,
             UserSeeder::class,
+            MoveSeeder::class,
         ]);
     }
 }
