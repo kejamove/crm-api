@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->integer('firm');
+            $table->foreign('firm')->references('id')->on('firms')->onDelete('cascade');
             $table->timestamps();
         });
     }

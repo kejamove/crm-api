@@ -14,7 +14,7 @@ class Move extends Model
     use HasFactory;
 
     protected $fillable = [
-        'lead_source',
+        'move_stage',
         'consumer_name',
         'corporate_name',
         'contact_information',
@@ -23,7 +23,10 @@ class Move extends Model
         'sales_representative',
         'invoiced_amount',
         'notes',
-        'store',
+        'remarks',
+        'branch',
+        'lead_source',
+        'move_request_received_at',
     ];
 
     public function sales_representative()
@@ -31,9 +34,9 @@ class Move extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function store()
+    public function branch()
     {
-        return $this->belongsTo(Store::class);
+        return $this->belongsTo(Branch::class, 'id');
     }
 
     public function lead()
@@ -41,5 +44,5 @@ class Move extends Model
         return $this->belongsTo(Lead::class);
     }
 
- 
+
 }

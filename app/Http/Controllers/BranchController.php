@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Branch;
 use App\Models\Firm;
+use App\Models\Move;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -26,7 +27,19 @@ class BranchController extends Controller
 
         if ($user->tokenCan('super_admin')) {
             $branches = Branch::all();
-            return response()->json($branches, 200);
+            return response()->json(['data'=>$branches], 200);
+        }
+
+        if ($user->tokenCan('firm_owner')) {
+            $firmId = $user->firm;
+
+            // Retrieve all branches associated with the user's firm
+            $branches = Branch::whereHas('firm', function ($query) use ($firmId) {
+                $query->where('firm', $firmId);
+            })->get();
+
+            // Return the moves
+            return response()->json(['data' => $branches], 200);
         }
 
         abort(403, 'Unauthorized access!');
@@ -61,6 +74,7 @@ class BranchController extends Controller
             $branch->save();
 
             return response()->json($branch, 201);
+
         }else if ($user->tokenCan('super_admin')) {
             $request->validate([
                 'name'=>'required|string|unique:stores|max:255',
@@ -88,8 +102,23 @@ class BranchController extends Controller
     public function show(string $id)
     {
         $user = Auth::user();
-
+        $firmId = $user->firm->id;
         if ($user->tokenCan('super_admin') || $user->tokenCan('firm_owner') || $user->tokenCan('branch_manager')) {
+
+            if ($user->tokenCan('firm_owner') ) {
+                $branch = Branch::where('id', $id)
+                    ->where('firm', $firmId)
+                    ->first();
+
+                if (!$branch) {
+                    abort(403, 'Unauthorised. Wrong Firm or Branch!');
+                }
+
+                $branch = Branch::with(['employees', 'moves'])->find($id);
+
+                return response()->json($branch, 200);
+            }
+
             $branch = Branch::with(['employees', 'moves'])->find($id);
 
             return response()->json($branch, 200);
@@ -103,7 +132,38 @@ class BranchController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $user = Auth::user();
+
+        if ($user->tokenCan('super_admin') || $user->tokenCan('firm_owner') || $user->tokenCan('branch_manager')) {
+
+            if ($user->tokenCan('branch_manager') && $user->branch !== $id){
+                abort(403, 'Unauthorised Action. Wrong Branch!');
+            }
+
+            $firmId = $user->firm;
+
+            if ($user->tokenCan('firm_owner')) {
+                $branch = Branch::where('id', $id)
+                    ->where('firm', $firmId)
+                    ->first();
+
+                if (!$branch) {
+                    abort(403, 'Unauthorised. Wrong Firm or Branch!');
+                }
+            }
+
+            $branch = Branch::findOrFail($id);
+
+            $branch->fill($request->only($branch->getFillable()));
+
+            $branch->save();
+
+            $branch->update($request->only($branch->getFillable()));
+
+            return response()->json(['data' => $branch], 200);
+        }
+
+        abort(403, 'Unauthorised Access');
     }
 
     /**
@@ -111,6 +171,32 @@ class BranchController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $user = Auth::user();
+        if ($user->tokenCan('super_admin') || $user->tokenCan('firm_owner') || $user->tokenCan('branch_manager')) {
+
+            if ($user->tokenCan('branch_manager') && $user->branch !== $id){
+                abort(403, 'Unauthorised Action. Wrong Branch!');
+            }
+
+            $firmId = $user->firm;
+
+            if ($user->tokenCan('firm_owner')) {
+                $branch = Branch::where('id', $id)
+                    ->where('firm', $firmId)
+                    ->first();
+
+                if (!$branch) {
+                    abort(403, 'Unauthorised. Wrong Firm or Branch!');
+                }
+            }
+
+            $branch = Branch::findOrFail($id);
+            $branch->delete();
+
+            return response()->json(['data' => 'Deleted Successfuly'], 204);
+        }
+
+        abort(403, 'Unauthorised Action');
+
     }
 }
