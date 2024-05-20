@@ -24,7 +24,7 @@ class BranchController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->tokenCan('admin')) {
+        if ($user->tokenCan('super_admin')) {
             $branches = Branch::all();
             return response()->json($branches, 200);
         }
@@ -40,7 +40,7 @@ class BranchController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->tokenCan('store_owner')) {
+        if ($user->tokenCan('firm_owner')) {
             $request->validate([
                 'name'=>'required|string|unique:stores|max:255',
             ]);
@@ -61,7 +61,7 @@ class BranchController extends Controller
             $branch->save();
 
             return response()->json($branch, 201);
-        }else if ($user->tokenCan('admin')) {
+        }else if ($user->tokenCan('super_admin')) {
             $request->validate([
                 'name'=>'required|string|unique:stores|max:255',
                 'firm'=>'required|int',
@@ -89,11 +89,13 @@ class BranchController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->tokenCan('admin') || $user->tokenCan('store_owner')) {
-            return Branch::Find($id);
-        }
+        if ($user->tokenCan('super_admin') || $user->tokenCan('firm_owner') || $user->tokenCan('branch_manager')) {
+            $branch = Branch::with(['employees', 'moves'])->find($id);
 
+            return response()->json($branch, 200);
+        }
         abort(403, 'Unauthorized access!');
+
     }
 
     /**

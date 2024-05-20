@@ -17,6 +17,16 @@ class Branch extends Model
 
     public function employees()
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class, 'branch', 'id');
+    }
+
+    public function moves()
+    {
+        return $this->hasMany(Move::class, 'branch', 'id');
+    }
+
+    public function firm()
+    {
+        return $this->belongsTo(Firm::class, 'firm', 'id'); // Update the foreign key if necessary
     }
 }
