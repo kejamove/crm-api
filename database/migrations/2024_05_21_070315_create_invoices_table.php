@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
+            $table->string('client_first_name');
+            $table->string('client_last_name');
+            $table->string('client_email');
+            $table->string('invoice_amount');
+            $table->string('invoice_number');
+            $table->string('invoice_status')->default(\App\Enums\InvoiceStatus::pending->value);
+            $table->unsignedBigInteger('move')->nullable();
+            $table->foreign('move')->references('id')->on('moves')->onDelete('cascade');
             $table->timestamps();
         });
     }

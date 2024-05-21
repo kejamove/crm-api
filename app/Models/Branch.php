@@ -27,6 +27,8 @@ class Branch extends Model
 
     public function firm()
     {
-        return $this->belongsTo(Firm::class, 'firm', 'id'); // Update the foreign key if necessary
+        return $this->belongsTo(Firm::class, 'firm', 'id');
     }
+
+
 }

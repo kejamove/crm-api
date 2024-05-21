@@ -100,9 +100,11 @@ class FirmController extends Controller
             abort(403, 'Unauthorised Action!');
         }
 
+
         $firm = Firm::with(['branches.employees', 'branches.moves', 'branches' => function ($query) {
             $query->withCount('moves');
         }])->find($id);
+
 
         if (!$firm) {
             abort(404, 'Firm Not Found');
@@ -112,7 +114,7 @@ class FirmController extends Controller
             abort(403, 'Unauthorised Access');
         }
 
-        abort(403, 'Unauthorized access!');
+        return response()->json($firm, 200);
     }
 
     /**

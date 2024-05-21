@@ -44,5 +44,9 @@ class Move extends Model
         return $this->belongsTo(Lead::class);
     }
 
+    public function invoice(){
+        return $this->hasMany(Invoice::class, 'branch', 'id');
+    }
+
 
 }

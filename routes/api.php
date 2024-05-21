@@ -72,6 +72,14 @@ Route::middleware('auth:sanctum')->get('/move-data', [MoveController::class, 'ge
 Route::middleware('auth:sanctum')->post('/moves-per-month/{year}', [MoveController::class, 'get_moves_per_month']);
 
 
+/*
+ * Invoice CRUD and mail
+ */
+Route::middleware('auth:sanctum')->post('/create-invoice', [\App\Http\Controllers\InvoiceController::class, 'store']);
+Route::middleware('auth:sanctum')->get('/list-invoice', [\App\Http\Controllers\InvoiceController::class, 'index']);
+Route::middleware('auth:sanctum')->post('/send-invoice/{id}', [\App\Http\Controllers\InvoiceController::class, 'send_invoice']);
+
+
 // COMPOSER HOME DIR
 /**
  * /home/kejadigital/www/test.kejadigital.com/composer

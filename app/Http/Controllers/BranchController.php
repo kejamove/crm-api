@@ -26,8 +26,7 @@ class BranchController extends Controller
         $user = Auth::user();
 
         if ($user->tokenCan('super_admin')) {
-            $branches = Branch::all();
-            return response()->json(['data'=>$branches], 200);
+            return response()->json(['data'=>Branch::all()], 200);
         }
 
         if ($user->tokenCan('firm_owner')) {
@@ -102,7 +101,7 @@ class BranchController extends Controller
     public function show(string $id)
     {
         $user = Auth::user();
-        $firmId = $user->firm->id;
+        $firmId = $user->firm;
         if ($user->tokenCan('super_admin') || $user->tokenCan('firm_owner') || $user->tokenCan('branch_manager')) {
 
             if ($user->tokenCan('firm_owner') ) {

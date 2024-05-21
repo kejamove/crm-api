@@ -127,6 +127,8 @@ class AuthController extends Controller
             'user_type' => 'required|string',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
+            'phone_local_number' => 'required|string|max:255',
+            'phone_country_code' => 'required|string|max:255',
         ]);
 
         // Check if the authenticated user is an admin
@@ -141,6 +143,8 @@ class AuthController extends Controller
             'user_type' => $fields['user_type'],
             'first_name' => $fields['first_name'],
             'last_name' => $fields['last_name'],
+            'phone_local_number' => $fields['phone_local_number'],
+            'phone_country_code' => $fields['phone_country_code'],
         ]);
 
         // Generate token
