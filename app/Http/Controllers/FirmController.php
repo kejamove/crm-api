@@ -49,7 +49,7 @@ class FirmController extends Controller
             abort(403, 'Unauthorised Action');
         }
 
-        return Firm::all();
+        return Firm::with('branches')->get();
 
     }
 
@@ -96,20 +96,20 @@ class FirmController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->tokenCan('super_admin') || $user->tokenCan('firm_owner')) {
-            $firm = Firm::with(['branches.employees', 'branches.moves' ,'branches' => function ($query) {
-                $query->withCount('moves');
-            }])->find($id);
+        if (!($user->tokenCan('super_admin') || $user->tokenCan('firm_owner'))) {
+            abort(403, 'Unauthorised Action!');
+        }
 
-            if (!$firm) {
-                abort(404, 'Firm Not Found');
-            }
+        $firm = Firm::with(['branches.employees', 'branches.moves', 'branches' => function ($query) {
+            $query->withCount('moves');
+        }])->find($id);
 
-            if ($user->tokenCan('firm_owner') && $user->firm !== $id){
-                abort(403, 'Unauthorised Access');
-            }
+        if (!$firm) {
+            abort(404, 'Firm Not Found');
+        }
 
-            return response()->json($firm, 200);
+        if ($user->tokenCan('firm_owner') && $user->firm !== $id) {
+            abort(403, 'Unauthorised Access');
         }
 
         abort(403, 'Unauthorized access!');

@@ -14,7 +14,7 @@ class FirmSeeder extends Seeder
     public function run()
     {
         // Create 5 firms
-        Firm::factory()->count(5)->create();
+        Firm::factory()->count(15)->create();
     }
 }
 
