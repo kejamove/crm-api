@@ -44,7 +44,7 @@ Route::middleware('auth:sanctum')->get('/user-data', [AuthController::class, 'ge
 /**
  * CRUD Operations on a Firm
  */
-Route::middleware('auth:sanctum')->get('/list-firms', [\App\Http\Controllers\FirmController::class, 'index']);
+Route::middleware(['auth:sanctum', 'throttle:10000,1'])->get('/list-firms', [\App\Http\Controllers\FirmController::class, 'index']);
 Route::middleware('auth:sanctum')->get('/list-firms/{id}', [\App\Http\Controllers\FirmController::class, 'show']);
 Route::middleware('auth:sanctum')->post('/register-firm', [\App\Http\Controllers\FirmController::class, 'store']);
 Route::middleware('auth:sanctum')->put('/update-firm/{id}', [\App\Http\Controllers\FirmController::class, 'update']);

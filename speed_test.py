@@ -27,8 +27,8 @@ def send_requests(url, token, num_requests):
 
 if __name__ == "__main__":
     # Configure your settings here
-    url = "http://localhost:8000/api/list-branches/4"  # URL to send requests to
-    token = "1|c9s8MyMyf8JydxktkgoS6AyjqA1dB9OmrfHJcZtge98689e1"  # Bearer token
+    url = "http://localhost:8000/api/list-firms"  # URL to send requests to
+    token = "1|yz6prtr4Qo6sqEK8tRLykKWFqJ8p2eMZbW9yG8pT213bcdeb"  # Bearer token
     num_requests = 100  # Number of requests to send in total
 
     send_requests(url, token, num_requests)
