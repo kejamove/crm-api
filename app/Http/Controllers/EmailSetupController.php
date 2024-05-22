@@ -34,10 +34,20 @@ class EmailSetupController extends Controller
             'firm' => 'required|string|max:255',
         ]);
 
+        // Check if an EmailSetup record already exists for the given firm
+        $email_setup = EmailSetup::where('firm', $validatedData['firm'])->first();
 
-        $email_setup = EmailSetup::create($validatedData);
+        if ($email_setup) {
+            // If the record exists, update it
+            $email_setup->update($validatedData);
+            $message = 'Email setup updated successfully';
+        } else {
+            // If the record does not exist, create a new one
+            $email_setup = EmailSetup::create($validatedData);
+            $message = 'Email setup created successfully';
+        }
 
-        return response()->json(['message' => 'Email Set up successfully', 'email_setup' => $email_setup], 201);
+        return response()->json(['message' => $message, 'email_setup' => $email_setup], 201);
     }
 
     /**
@@ -61,6 +71,8 @@ class EmailSetupController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $mail_setup = EmailSetup::findOrFail($id);
+        $mail_setup->delete();
+
     }
 }

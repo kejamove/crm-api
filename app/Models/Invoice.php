@@ -19,9 +19,11 @@ class Invoice extends Model
     ];
 
 
-    public function move(){
+    public function move()
+    {
         return $this->belongsTo(Move::class, 'move', 'id');
     }
+
 
 }
 

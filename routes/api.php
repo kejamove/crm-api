@@ -85,6 +85,7 @@ Route::middleware('auth:sanctum')->post('/send-invoice/{id}', [\App\Http\Control
  */
 Route::middleware('auth:sanctum')->post('/setup-email', [\App\Http\Controllers\EmailSetupController::class, 'store']);
 Route::middleware('auth:sanctum')->get('/list-email-setup', [\App\Http\Controllers\EmailSetupController::class, 'index']);
+Route::middleware('auth:sanctum')->delete('/setup-email/delete/{id}', [\App\Http\Controllers\EmailSetupController::class, 'destroy']);
 
 // COMPOSER HOME DIR
 /**
