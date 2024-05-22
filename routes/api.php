@@ -80,6 +80,12 @@ Route::middleware('auth:sanctum')->get('/list-invoice', [\App\Http\Controllers\I
 Route::middleware('auth:sanctum')->post('/send-invoice/{id}', [\App\Http\Controllers\InvoiceController::class, 'send_invoice']);
 
 
+/*
+ * Email Setup
+ */
+Route::middleware('auth:sanctum')->post('/setup-email', [\App\Http\Controllers\EmailSetupController::class, 'store']);
+Route::middleware('auth:sanctum')->get('/list-email-setup', [\App\Http\Controllers\EmailSetupController::class, 'index']);
+
 // COMPOSER HOME DIR
 /**
  * /home/kejadigital/www/test.kejadigital.com/composer

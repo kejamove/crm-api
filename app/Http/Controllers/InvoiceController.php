@@ -25,20 +25,25 @@ class InvoiceController extends Controller
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'client_first_name' => 'required|string|max:255',
-            'client_last_name' => 'required|string|max:255',
-            'client_email' => 'required|string|max:255',
+        $request->validate([
             'move' => 'required|string|max:255',
         ]);
 
-        $invoice_amount = Move::findOrFail($request->move)->first();
+        $move = Move::findOrFail($request->move);
+
 
         do {
             $invoice_number = 'kjvce' . substr(md5(uniqid()), 0, 4);
         } while (Invoice::where('invoice_number', $invoice_number)->exists());
 
-        $invoice = Invoice::create(array_merge($validatedData, ['invoice_number' => $invoice_number, 'invoice_amount' => $invoice_amount->invoiced_amount]));
+        $invoice = Invoice::create([
+            'invoice_number' => $invoice_number,
+            'invoice_amount' => $move->invoiced_amount,
+            'client_name' => $move->consumer_name,
+            'client_last_name' => $move->invoiced_amount,
+            'client_email' => $move->client_email,
+            'move' => $request->move,
+        ]);
 
         return response()->json(['message' => 'Invoice created successfully', 'invoice' => $invoice], 201);
     }
@@ -61,7 +66,7 @@ class InvoiceController extends Controller
         // Send the email
         Mail::to($invoice->client_email)->send(new InvoiceMail($invoice));
 
-        return response()->json(['message' => 'Email sent successfully!', $invoice->client_email, $id], 200);
+        return response()->json(['message' => 'Email sent successfully!'], 200);
     }
 
     /**

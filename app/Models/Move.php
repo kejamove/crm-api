@@ -17,7 +17,7 @@ class Move extends Model
         'move_stage',
         'consumer_name',
         'corporate_name',
-        'contact_information',
+        'client_email',
         'moving_from',
         'moving_to',
         'sales_representative',

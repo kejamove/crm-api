@@ -145,6 +145,8 @@ class AuthController extends Controller
             'last_name' => $fields['last_name'],
             'phone_local_number' => $fields['phone_local_number'],
             'phone_country_code' => $fields['phone_country_code'],
+            'firm' => $request['firm'],
+            'branch' => $request['branch'],
         ]);
 
         // Generate token

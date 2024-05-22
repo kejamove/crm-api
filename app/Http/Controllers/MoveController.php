@@ -69,7 +69,7 @@ class MoveController extends Controller
             'branch' => 'required',
             'moving_from' => 'required',
             'moving_to' => 'required',
-            'contact_information' => 'required',
+            'client_email' => 'required',
             'move_stage' => 'required',
         ]);
 
@@ -80,8 +80,11 @@ class MoveController extends Controller
             abort(403, 'Unauthorised Action!');
         }
 
+        $sales_rep_object = User::findOrFail($request->sales_representative);
 
-        if ( !$request->sales_representative || $request->sales_representative !== $user->branch  ) {
+//        return response(['reps_branch' => $sales_rep_object->branch, 'moves'=> $request->branch], 200);
+
+        if ( !$request->sales_representative || $sales_rep_object->branch !== $request->branch  ) {
             abort(403, 'The Sales Rep does not belong this branch or does not exist!');
         }
 
@@ -91,7 +94,7 @@ class MoveController extends Controller
             'move_stage',
             'consumer_name',
             'corporate_name',
-            'contact_information',
+            'client_email',
             'moving_from',
             'moving_to',
             'invoiced_amount',
@@ -101,8 +104,8 @@ class MoveController extends Controller
         ]);
 
         try {
-//            $move = Move::create($data);
-            return response()->json(['data' => $data], 201);
+            $move = Move::create($data);
+            return response()->json(['data' => $move], 201);
         } catch (\Exception $e) {
             return response()->json(['error' => 'internal_server_error' . $e, 'message' => 'Failed to create move. Please try again later.'], 500);
         }

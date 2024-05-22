@@ -10,8 +10,7 @@ class Invoice extends Model
     use HasFactory;
 
     protected $fillable = [
-        'client_first_name',
-        'client_last_name',
+        'client_name',
         'client_email',
         'invoice_amount',
         'invoice_status',
@@ -21,7 +20,7 @@ class Invoice extends Model
 
 
     public function move(){
-        return $this->belongsTo(Branch::class, 'move', 'id');
+        return $this->belongsTo(Move::class, 'move', 'id');
     }
 
 }

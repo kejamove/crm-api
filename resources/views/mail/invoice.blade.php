@@ -15,7 +15,7 @@
     </div>
 
     <h1 style="font-size: 2.25rem; font-weight: 700; margin-bottom: 1rem; color: #2d3748; text-align: center;">Your Moving Quotation</h1>
-    <h2 style="font-size: 1.25rem; font-weight: 400; margin-bottom: 1rem; color: #2d3748; text-align: center;">Hello, {{$invoice->client_first_name}} {{$invoice->client_last_name}}</h2>
+    <h2 style="font-size: 1.25rem; font-weight: 400; margin-bottom: 1rem; color: #2d3748; text-align: center;">Hello, {{$invoice->client_name}}</h2>
 
     <p style="font-size: 1.125rem; text-align: center; max-width: 75%; margin: 0 auto; color: #2d3748;">Thank you for inviting Keja Move Ltd. Our quotations are based on the distance between origin and destination locations as well as volume of your inventory.</p>
 

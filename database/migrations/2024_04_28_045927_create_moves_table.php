@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('lead_source')->default(\App\Enums\LeadSource::offline_marketing->value);
             $table->string('consumer_name')->nullable();
             $table->string('corporate_name')->nullable();
-            $table->string('contact_information');
+            $table->string('client_email');
             $table->string('moving_from');
             $table->string('moving_to');
             $table->unsignedBigInteger('sales_representative')->nullable();

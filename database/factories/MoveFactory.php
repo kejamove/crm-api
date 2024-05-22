@@ -31,7 +31,7 @@ class MoveFactory extends Factory
             'lead_source' => LeadSource::offline_marketing,
             'consumer_name' => $this->faker->name,
             'corporate_name' => $this->faker->company,
-            'contact_information' => $this->faker->phoneNumber,
+            'client_email' => $this->faker->email(),
             'moving_from' => $this->faker->city,
             'moving_to' => $this->faker->city,
             'sales_representative' => User::inRandomOrder()->first()->id,
