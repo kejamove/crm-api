@@ -24,9 +24,14 @@ class AuthController extends Controller
             abort(401, 'User Not Authenticated');
         }
 
-        if ($user->tokenCan('super_admin')) {
+        if ($user->tokenCan(RoleEnum::super_admin->value)) {
             return User::all();
-        } else {
+        } elseif ($user->tokenCan(RoleEnum::firm_owner->value)) {
+            return User::where('firm', $user->firm)->get();
+        } elseif ($user->tokenCan(RoleEnum::branch_manager->value)) {
+            return User::where('branch', $user->branch)->get();
+        }
+        else {
             abort(403, 'Unauthorized action.');
         }
     }
