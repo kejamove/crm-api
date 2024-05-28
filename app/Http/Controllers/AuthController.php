@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RoleEnum;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -175,7 +176,11 @@ class AuthController extends Controller
             // only admin can see all users
             if ($user->tokenCan('super_admin')) {
                 return response()->json(['count' => User::count()]);
-            } else {
+            }elseif ($user->tokenCan(RoleEnum::firm_owner->value)){
+                $employeeCount = User::where('firm', $user->firm)->get()->count();
+                return response()->json(['count'=>$employeeCount], 200);
+            }
+            else {
                 abort(403, 'Unauthorized Action.');
             }
         } else {
