@@ -117,6 +117,15 @@ class FirmController extends Controller
         return response()->json($firm, 200);
     }
 
+    /*
+     * Get firm count
+     */
+
+    public function getFirmCount()
+    {
+        return response()->json(['data' =>  Firm::count()]);
+    }
+
     /**
      * Update the specified resource in storage.
      */

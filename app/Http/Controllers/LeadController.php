@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RoleEnum;
 use Illuminate\Http\Request;
 use App\Models\Lead;
 use Illuminate\Support\Facades\Auth;
@@ -25,7 +26,7 @@ class LeadController extends Controller
     public function index()
     {
         $leads = Lead::all();
-        return response()->json($leads);    
+        return response()->json($leads);
     }
 
     /**
@@ -43,7 +44,7 @@ class LeadController extends Controller
         ]);
 
         $lead = Lead::create($request->all());
-        
+
         return response()->json($lead, 201);
     }
 
@@ -81,28 +82,28 @@ class LeadController extends Controller
     public function destroy($id)
     {
         $user = Auth::user();
-        if ($user->tokenCan('admin')) {
+        if ($user->tokenCan(RoleEnum::super_admin->value)) {
             $lead = Lead::findOrFail($id);
             $lead->delete();
             return response()->json(['message' => 'Lead deleted successfully']);
         }else {
-            return response->json(['error'=> 'Fobidden', 'message'=>'You need to be admin to perform this action']);
+            return response()->json(['error'=> 'Fobidden', 'message'=>'You need to be admin to perform this action']);
         }
-        
+
     }
 
      /**
      * Display Info about the resources
      */
 
-     public function get_lead_data() 
+     public function getLeadData()
      {
         if (Auth::check()) {
             $user = Auth::user();
 
             // only admin can see all stores
-            if ($user->tokenCan('admin')) {
-                return response()->json(['count' => count(Lead::all()) ]);
+            if ($user->tokenCan(RoleEnum::super_admin->value)) {
+                return response()->json(['data' => Lead::count() ]);
             }else {
                 return response()->json(['message' => 'Unauthorized. Missing required permissions: Admin'], 403);
             }

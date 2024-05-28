@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RoleEnum;
 use Illuminate\Http\Request;
 use App\Models\Store;
 use Illuminate\Support\Facades\Auth;
@@ -12,13 +13,15 @@ class StoreController extends Controller
     /**
      * Display a listing of the resource.
      */
+
     public function index()
     {
         if (Auth::check()) {
             $user = Auth::user();
+            $user_type = 'super_admin';
 
             // only admin can see all stores
-            if ($user->tokenCan('admin')) {
+            if ($user->tokenCan($user_type)) {
                 return Store::all();
             }else {
                 return response()->json(['message' => 'Unauthorized. Missing required permissions: Admin'], 403);
@@ -27,21 +30,21 @@ class StoreController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
-        
-    
+
+
     }
 
     /**
      * Display Info about the resources
      */
 
-     public function get_store_data() 
+     public function get_store_data()
      {
         if (Auth::check()) {
             $user = Auth::user();
 
             // only admin can see all stores
-            if ($user->tokenCan('admin')) {
+            if ($user->tokenCan(RoleEnum::super_admin->value)) {
                 return response()->json(['count' => count(Store::all())]);
             }else {
                 return response()->json(['message' => 'Unauthorized. Missing required permissions: Admin'], 403);
@@ -57,8 +60,8 @@ class StoreController extends Controller
     public function my_store()
     {
 
-        // is user authenticated 
-        if (Auth::check()) { 
+        // is user authenticated
+        if (Auth::check()) {
             $user = Auth::user();
 
             // is user a store_owner
@@ -73,9 +76,9 @@ class StoreController extends Controller
                     $user_store_object = Store::where('registration_number', $user_store_registration_number)->first();
 
                     return response()->json($user_store_object, 200);
-                }else 
+                }else
                 {
-                    return response()->json(['store' => null], 404);  
+                    return response()->json(['store' => null], 404);
                 }
             }else {
                 return response()->json(['message' => 'Unauthorized. Missing required permissions: Store Owner'], 403);
@@ -99,30 +102,30 @@ class StoreController extends Controller
                 'name'=>'required|string|unique:stores|max:255',
                 'location'=>'required',
             ]);
-    
+
             $registration_number = 'keja' . uniqid();
-    
-            // check if registration number already exists 
+
+            // check if registration number already exists
             while (Store::where('registration_number', $registration_number)->exists()) {
                 $registration_number = 'keja' . uniqid();
             }
-    
+
             // check if name already exists
-    
+
             $store = new Store();
             $store->name = $request['name'];
             $store->location = $request['location'];
             $store->registration_number = $registration_number;
-            
-    
+
+
             $store->save();
-    
+
             return response()->json($store, 201);
         }else {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        
+
     }
 
     /**
@@ -155,9 +158,9 @@ class StoreController extends Controller
     public function get_employees(Resuest $request)
     {
         /**
-         * is user authenticated 
+         * is user authenticated
          */
-        if (Auth::check()) { 
+        if (Auth::check()) {
             $user = Auth::user();
 
             /**
@@ -176,12 +179,12 @@ class StoreController extends Controller
                     $user_store_object = User::where('store', $user_store_registration_number);
 
                     return response()->json($user_store_object, 200);
-                }else 
+                }else
                 {
                     /**
                      * return null if no store is associated
                      */
-                    return response()->json(['store' => null], 404);  
+                    return response()->json(['store' => null], 404);
                 }
             }else {
                 return response()->json(['message' => 'Unauthorized. Missing required permissions: Store Owner'], 403);

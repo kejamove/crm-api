@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RoleEnum;
 use App\Models\Branch;
 use App\Models\Firm;
 use Illuminate\Http\Request;
@@ -205,7 +206,7 @@ class MoveController extends Controller
             $user = Auth::user();
 
             // only admin can see all stores
-            if ($user->tokenCan('admin')) {
+            if ($user->tokenCan(RoleEnum::super_admin->value)) {
                 return response()->json(['count' => count(Move::all())]);
             }else {
                 return response()->json(['message' => 'Unauthorized. Missing required permissions: Admin'], 403);
