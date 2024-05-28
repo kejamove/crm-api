@@ -145,7 +145,16 @@ class FirmController extends Controller
 
     public function getFirmCount()
     {
-        return response()->json(['data' =>  Firm::count()]);
+        $user = Auth::user();
+
+        if ($user->tokenCan('super_admin')){
+            return response()->json(['data' =>  Firm::count()]);
+        }elseif ($user->tokenCan('firm_owner')){
+            return response()->json(['data'=> 1], 200);
+        }else {
+            abort(403, 'Unauthorised access');
+        }
+
     }
 
     /**

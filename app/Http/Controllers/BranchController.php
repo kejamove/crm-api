@@ -26,7 +26,7 @@ class BranchController extends Controller
         $user = Auth::user();
 
         if ($user->tokenCan('super_admin')) {
-            return response()->json(['data'=>Branch::all()], 200);
+            return response()->json(Branch::all(), 200);
         }
 
         if ($user->tokenCan('firm_owner')) {
@@ -38,7 +38,7 @@ class BranchController extends Controller
             })->get();
 
             // Return the moves
-            return response()->json(['data' => $branches], 200);
+            return response()->json($branches, 200);
         }
 
         abort(403, 'Unauthorized access!');
