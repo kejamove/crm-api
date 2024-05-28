@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\RoleEnum;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\Lead;
 use Illuminate\Support\Facades\Auth;
@@ -104,7 +105,14 @@ class LeadController extends Controller
             // only admin can see all stores
             if ($user->tokenCan(RoleEnum::super_admin->value)) {
                 return response()->json(['data' => Lead::count() ]);
-            }else {
+            }elseif ($user->tokenCan(RoleEnum::firm_owner->value)){
+                $firmId = $user->firm;
+                $leads = Lead::whereHas('store', function ($query) use ($firmId) {
+                    $query->where('firm', $firmId);
+                })->get()->count();
+                return response()->json(['data'=>$leads], 200);
+            }
+            else {
                 return response()->json(['message' => 'Unauthorized. Missing required permissions: Admin'], 403);
             }
         }else {
