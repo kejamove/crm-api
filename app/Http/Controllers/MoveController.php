@@ -205,10 +205,17 @@ class MoveController extends Controller
         if (Auth::check()) {
             $user = Auth::user();
 
-            // only admin can see all stores
             if ($user->tokenCan(RoleEnum::super_admin->value)) {
                 return response()->json(['count' => count(Move::all())]);
-            }else {
+            }elseif ($user->tokenCan(RoleEnum::firm_owner->value)){
+                $firmId = $user->firm;
+                $totalMoves = \DB::table('branches')
+                    ->join('moves', 'branches.id', '=', 'moves.branch')
+                    ->where('branches.firm', $firmId)
+                    ->count('moves.id');
+                return response()->json(['count'=>$totalMoves], 200);
+            }
+            else {
                 return response()->json(['message' => 'Unauthorized. Missing required permissions: Admin'], 403);
             }
         }else {
