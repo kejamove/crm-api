@@ -117,6 +117,28 @@ class FirmController extends Controller
         return response()->json($firm, 200);
     }
 
+
+    public function getAssociatedBranches(string $id)
+    {
+        $user = Auth::user();
+
+        if (!($user->tokenCan('super_admin') || $user->tokenCan('firm_owner'))) {
+            abort(403, 'Unauthorised Action!');
+        }
+
+        $branches = Firm::findOrFail($id)->branches;
+
+        if (!$branches) {
+            abort(404, 'Firm Not Found');
+        }
+
+        if ($user->tokenCan('firm_owner') && $user->firm !== $id) {
+            abort(403, 'Unauthorised Access');
+        }
+
+        return response()->json($branches, 200);
+    }
+
     /*
      * Get firm count
      */
