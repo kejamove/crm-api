@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RoleEnum;
 use App\Models\Branch;
 use App\Models\Firm;
 use App\Models\Move;
@@ -25,11 +26,11 @@ class BranchController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->tokenCan('super_admin')) {
+        if ($user->tokenCan(RoleEnum::super_admin->value)) {
             return response()->json(Branch::all(), 200);
         }
 
-        if ($user->tokenCan('firm_owner')) {
+        if ($user->tokenCan(RoleEnum::firm_owner->value)) {
             $firmId = $user->firm;
 
             // Retrieve all branches associated with the user's firm

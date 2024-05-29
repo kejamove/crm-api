@@ -12,9 +12,16 @@ class EmailSetupController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return EmailSetup::all();
+        $query = EmailSetup::query();
+
+        if ((string) $request->has('firm')) {
+            $firmId =(string) $request->input('firm');
+            $query->where('firm', $firmId);
+        }
+
+        return response()->json([$query->get()],200);
     }
 
     /**

@@ -16,24 +16,36 @@ class AuthController extends Controller
         $this->middleware('auth:sanctum')->except(['login']);
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
-        if (!$user) {
-            abort(401, 'User Not Authenticated');
+        if ($user->tokenCan(RoleEnum::super_admin->value)) {
+            $query = User::query();
+
+            if ($request->has('branch')) {
+                $query->where('branch', $request->input('branch'));
+            }
+
+            return $query->get();
         }
 
-        if ($user->tokenCan(RoleEnum::super_admin->value)) {
-            return User::all();
-        } elseif ($user->tokenCan(RoleEnum::firm_owner->value)) {
-            return User::where('firm', $user->firm)->get();
-        } elseif ($user->tokenCan(RoleEnum::branch_manager->value)) {
+        if ($user->tokenCan(RoleEnum::firm_owner->value)) {
+            $query = User::where('firm', $user->firm);
+
+            if ($request->has('branch')) {
+                $query->where('branch', $request->input('branch'));
+            }
+
+            return $query->get();
+        }
+
+        if ($user->tokenCan(RoleEnum::branch_manager->value)) {
             return User::where('branch', $user->branch)->get();
         }
-        else {
-            abort(403, 'Unauthorized action.');
-        }
+
+        abort(403, 'Unauthorized action.');
+
     }
 
     /**

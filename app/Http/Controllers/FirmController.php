@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RoleEnum;
 use App\Models\Branch;
 use App\Models\Firm;
 use App\Models\Store;
@@ -45,9 +46,14 @@ class FirmController extends Controller
     {
         $user = Auth::user();
 
-        if(!$user->tokenCan('super_admin')){
+        if ($user->tokenCan(RoleEnum::firm_owner->value)){
+            return Firm::where('id', $user->firm)->get();
+        }
+
+        if(!$user->tokenCan(RoleEnum::super_admin->value)) {
             abort(403, 'Unauthorised Action');
         }
+
 
         return Firm::with('branches')->get();
 
@@ -95,11 +101,11 @@ class FirmController extends Controller
     public function show(string $id)
     {
         $user = Auth::user();
+//        abort(403, 'Unauthorised Action! '.$user);
 
-        if (!($user->tokenCan('super_admin') || $user->tokenCan('firm_owner'))) {
-            abort(403, 'Unauthorised Action!');
+        if (!$user->tokenCan(RoleEnum::super_admin->value) && !$user->tokenCan(RoleEnum::firm_owner->value)) {
+            abort(403, 'Unauthorised Action! '.$user);
         }
-
 
         $firm = Firm::with(['branches.employees', 'branches.moves', 'branches' => function ($query) {
             $query->withCount('moves');
@@ -110,7 +116,7 @@ class FirmController extends Controller
             abort(404, 'Firm Not Found');
         }
 
-        if ($user->tokenCan('firm_owner') && $user->firm !== $id) {
+        if ($user->tokenCan(RoleEnum::firm_owner->value) && $user->firm != $id) {
             abort(403, 'Unauthorised Access');
         }
 
@@ -122,18 +128,23 @@ class FirmController extends Controller
     {
         $user = Auth::user();
 
-        if (!($user->tokenCan('super_admin') || $user->tokenCan('firm_owner'))) {
+        $branches = Firm::findOrFail($id)->branches;
+
+        if ($user->tokenCan(RoleEnum::firm_owner->value)){
+            return response()->json($branches, 200);
+        }
+
+        if (!($user->tokenCan(RoleEnum::super_admin->value))) {
             abort(403, 'Unauthorised Action!');
         }
 
-        $branches = Firm::findOrFail($id)->branches;
 
         if (!$branches) {
             abort(404, 'Firm Not Found');
         }
-
-        if ($user->tokenCan('firm_owner') && $user->firm !== $id) {
-            abort(403, 'Unauthorised Access');
+//
+        if ($user->tokenCan('firm_owner') && $user->firm != $id) {
+            abort(403, 'Unauthorised Access...............');
         }
 
         return response()->json($branches, 200);
