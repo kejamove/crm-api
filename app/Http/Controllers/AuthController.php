@@ -20,6 +20,9 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
+        /**
+         * SUPER USER
+         */
         if ($user->tokenCan(RoleEnum::super_admin->value)) {
             $query = User::query();
 
@@ -30,6 +33,9 @@ class AuthController extends Controller
             return $query->get();
         }
 
+        /**
+         * FIRM OWNER
+         */
         if ($user->tokenCan(RoleEnum::firm_owner->value)) {
             $query = User::where('firm', $user->firm);
 
@@ -40,6 +46,9 @@ class AuthController extends Controller
             return $query->get();
         }
 
+        /**
+         * BRANCH MANAGER
+         */
         if ($user->tokenCan(RoleEnum::branch_manager->value)) {
             return User::where('branch', $user->branch)->get();
         }
