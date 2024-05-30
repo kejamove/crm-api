@@ -32,7 +32,7 @@ class MoveController extends Controller
 
         // Check if the user is a super admin && return all moves
         if ($user->tokenCan('super_admin')) {
-            return response()->json(['data'=>Move::all()],200);
+            return response()->json(Move::all(),200);
         }
 
         // firm_owner
@@ -45,7 +45,7 @@ class MoveController extends Controller
             })->get();
 
             // Return the moves
-            return response()->json(['moves' => $moves], 200);
+            return response()->json($moves);
         }
 
         // branch_manager && project_manager
@@ -122,17 +122,34 @@ class MoveController extends Controller
         $move = Move::findOrFail($id);
 
         // unless you are a super admin , you need to belong to the branch of that move
-        if (!($user->tokenCan('super_admin') || $user->branch == $move->branch)) {
+        $sales_rep = User::findOrFail($move->sales_representative);
+        if ($user->tokenCan(RoleEnum::firm_owner->value)){
+            /**
+             * CHECK IF THE FIRM THIS USER BELONGS TO HAS SUCH A BRANCH
+             */
+
+            $branch = Branch::findOrFail($move->branch);
+
+            if ($user->firm != $branch->firm ){
+                return response()->json(['error' => 'Unauthorised Action!', $branch, $user , $move], 200);
+//                abort(403, 'Unauthorised Action! Wrong Firm ! Branch does not exist or does not belong to this firm!', $branch, $user-firm);
+
+            }
+
+            return response()->json(['data' => $move, 'branch' => $branch], 200);
+        }
+
+        // unless you are a super admin , you need to belong to the branch of that move
+        if (!($user->tokenCan(RoleEnum::super_admin->value) || $user->branch == $move->branch)) {
             abort(403, 'Unauthorised Action!');
         }
 
         // Get the user object for the sales representative
         if ($move->sales_representative){
-            $sales_rep = User::findOrFail($move->sales_representative);
-            return response()->json(['data' => $move, 'sales_representative_object'=> $sales_rep], 200);
+            return response()->json(['data' =>$move, 'sales_representative_object'=> $sales_rep], 200);
         }
 
-        return response()->json(['data' => $move], 200);
+        return response()->json(['data' =>$move], 200);
 
     }
 

@@ -36,7 +36,7 @@ class Move extends Model
 
     public function branch()
     {
-        return $this->belongsTo(Branch::class, 'id');
+        return $this->belongsTo(Branch::class, 'branch','id');
     }
 
     public function lead()
