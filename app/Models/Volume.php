@@ -24,6 +24,6 @@ class Volume extends Model
      */
     public function move()
     {
-        return $this->belongsTo(Move::class);
+        return $this->belongsTo(Move::class, 'move', 'id');
     }
 }
