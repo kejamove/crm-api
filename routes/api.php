@@ -31,6 +31,7 @@ Route::post('/successful-move-email-notification', [EmailController::class, 'clo
  * Authenticate Users
  */
 Route::middleware('auth:sanctum')->post('/register-user', [AuthController::class, 'register_user']);
+Route::middleware('auth:sanctum')->get('/list-user-by-branch/{branchId}', [AuthController::class, 'getUserByBranch']);
 Route::post('/logout', [AuthController::class, 'logout']);
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -75,8 +76,8 @@ Route::middleware('auth:sanctum')->get('/store-data', [StoreController::class, '
  * CRUD Operations on a Move
  */
 Route::middleware('auth:sanctum')->post('/register-move', [MoveController::class, 'create_move']);
-Route::middleware('auth:sanctum')->get('/all-moves', [MoveController::class, 'index']);
-Route::middleware('auth:sanctum')->get('/all-moves/{id}', [MoveController::class, 'show']);
+Route::middleware('auth:sanctum')->get('/list-moves', [MoveController::class, 'index']);
+Route::middleware('auth:sanctum')->get('/list-moves-show/{id}', [MoveController::class, 'show']);
 Route::middleware('auth:sanctum')->put('/update-move/{id}', [MoveController::class, 'update']);
 Route::middleware('auth:sanctum')->delete('/delete-move/{id}', [MoveController::class, 'destroy']);
 Route::middleware('auth:sanctum')->get('/move-data', [MoveController::class, 'get_move_data']);

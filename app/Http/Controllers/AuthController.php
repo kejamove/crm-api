@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\RoleEnum;
+use App\Models\Branch;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -190,6 +191,29 @@ class AuthController extends Controller
 
         return response($response, 201);
     }
+
+    public function getUserByBranch($branchId)
+    {
+        $user = Auth::user();
+
+        $userObject = [] ;
+
+        if ($user->tokenCan(RoleEnum::super_admin->value) || $user->tokenCan(RoleEnum::firm_owner->value)) {
+            $userObject = User::where('branch', $branchId)->get();
+            return response()->json($userObject, 200);
+        }
+
+        if ($user->tokenCan(RoleEnum::sales->value) ||
+            $user->tokenCan(RoleEnum::marketing->value) ||
+            $user->tokenCan(RoleEnum::project_manager->value) ||
+            $user->tokenCan(RoleEnum::branch_manager->value)
+        ) {
+            return response()->json([$user], 200);
+        }
+
+        abort(403, 'Unauthorized action.');
+    }
+
 
     /**
      * Display Info about the resources

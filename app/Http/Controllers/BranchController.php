@@ -42,6 +42,14 @@ class BranchController extends Controller
             return response()->json($branches, 200);
         }
 
+        if ($user->tokenCan(RoleEnum::sales->value) ||
+            $user->tokenCan(RoleEnum::marketing->value) ||
+            $user->tokenCan(RoleEnum::project_manager->value) ||
+            $user->tokenCan(RoleEnum::branch_manager->value)
+        ) {
+            return response()->json(Branch::where('id', $user->branch)->get(), 200);
+        }
+
         abort(403, 'Unauthorized access!');
 
     }

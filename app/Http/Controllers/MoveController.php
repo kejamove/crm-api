@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\LeadSourceEnum;
 use App\Enums\RoleEnum;
 use App\Models\Branch;
 use App\Models\Firm;
@@ -11,6 +12,7 @@ use App\Models\Move;
 use App\Models\User;
 use App\Helpers;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class MoveController extends Controller
 {
@@ -32,7 +34,7 @@ class MoveController extends Controller
 
         // Check if the user is a super admin && return all moves
         if ($user->tokenCan('super_admin')) {
-            return response()->json(Move::all(),200);
+            return response()->json(Move::orderBy('id', 'desc')->get(), 200);
         }
 
         // firm_owner
@@ -45,7 +47,7 @@ class MoveController extends Controller
             })->get();
 
             // Return the moves
-            return response()->json($moves);
+            return response()->json($moves->sortByDesc('id')->values());
         }
 
         // branch_manager && project_manager
@@ -53,6 +55,10 @@ class MoveController extends Controller
             $moves = Move::where('branch', $user->branch)->get();
             // Return the moves
             return response()->json(['moves' => $moves], 200);
+        }
+
+        if ($user->tokenCan(RoleEnum::sales->value) || $user->tokenCan(RoleEnum::marketing->value)) {
+            return response()->json(Move::where('sales_representative', $user->id)->get(), 200);
         }
 
         abort(403, 'Unauthorised Action');
@@ -64,28 +70,59 @@ class MoveController extends Controller
      */
     public function create_move(Request $request)
     {
-        // Check if the required fields are present
-        $request->validate([
+        $enumValues = [
+            LeadSourceEnum::web->value,
+            LeadSourceEnum::referral->value,
+            LeadSourceEnum::offline_marketing->value,
+            LeadSourceEnum::social_media->value,
+            LeadSourceEnum::repeat_client->value,
+        ];
+
+        // Validate the incoming request data
+        $validator = Validator::make($request->all(), [
             'sales_representative' => 'required',
             'branch' => 'required',
             'moving_from' => 'required',
             'moving_to' => 'required',
             'client_email' => 'required',
             'move_stage' => 'required',
+            'lead_source' => ['required', 'string', 'in:' . implode(',', $enumValues)], // Ensure lead_source matches one of the enum values
         ]);
 
+        // If validation fails, return the errors
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()->first()], 422);
+        }
         // Check if the user is authenticated
         $user = Auth::user();
 
-        if (!($user->tokenCan('super_admin') || $user->branch == $request->branch)) {
+        if (
+            !$user->tokenCan(RoleEnum::super_admin->value) &&
+            $user->branch != $request->branch &&
+            !$user->tokenCan(RoleEnum::firm_owner->value)
+        )
+        {
             abort(403, 'Unauthorised Action!');
+        }
+
+        if($user->tokenCan(RoleEnum::firm_owner->value))
+        {
+            $firmId = $user->firm;
+
+            // Check if the branch exists and belongs to the firm owned by the user
+            $branchId = $request->input('branch'); // Assuming 'branch' is the key for the branch ID in the request
+            $branch = Branch::find($branchId);
+
+            if (!$branch || $branch->firm !== $firmId) {
+                abort(403, 'Unauthorized Action! The branch does not belong to your firm.');
+            }
         }
 
         $sales_rep_object = User::findOrFail($request->sales_representative);
 
 //        return response(['reps_branch' => $sales_rep_object->branch, 'moves'=> $request->branch], 200);
 
-        if ( !$request->sales_representative || $sales_rep_object->branch !== $request->branch  ) {
+        if ( !$request->sales_representative && $sales_rep_object->branch !== $request->branch  ) {
             abort(403, 'The Sales Rep does not belong this branch or does not exist!');
         }
 
@@ -103,6 +140,8 @@ class MoveController extends Controller
             'remarks',
             'lead_source',
         ]);
+
+
 
         try {
             $move = Move::create($data);
@@ -136,7 +175,7 @@ class MoveController extends Controller
 
             }
 
-            return response()->json(['data' => $move, 'branch' => $branch], 200);
+            return response()->json(['data' => $move, 'sales_representative_object'=> $sales_rep], 200);
         }
 
         // unless you are a super admin , you need to belong to the branch of that move

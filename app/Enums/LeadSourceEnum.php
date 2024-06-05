@@ -1,7 +1,7 @@
 <?php
 namespace App\Enums;
 
-enum LeadSource: string
+enum LeadSourceEnum: string
 {
     case web = 'web';
     case referral = 'referral';
