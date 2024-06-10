@@ -31,6 +31,7 @@ class AuthController extends Controller
             if ($request->has('branch')) {
                 $query->where('branch', $request->input('branch'));
             }
+//            $query->where('is_active', true);
 
             return $query->get();
         }
@@ -44,6 +45,8 @@ class AuthController extends Controller
             if ($request->has('branch')) {
                 $query->where('branch', $request->input('branch'));
             }
+//            $query->where('is_active', true);
+
 
             return $query->get();
         }
@@ -52,7 +55,9 @@ class AuthController extends Controller
          * BRANCH MANAGER
          */
         if ($user->tokenCan(RoleEnum::branch_manager->value)) {
-            return User::where('branch', $user->branch)->get();
+            return User::where('branch', $user->branch)
+                ->where('is_active', true)
+                ->get();
         }
 
         abort(403, 'Unauthorized action.');
@@ -122,6 +127,10 @@ class AuthController extends Controller
 
         // Check email and password
         $user = User::where('email', $fields['email'])->first();
+
+        if ($user->is_active === false) {
+            abort(403, 'Unauthorized action. || You were fired!!');
+        }
 
         if (!$user || !Hash::check($fields['password'], $user->password)) {
             abort(401,'Bad credentials.');
@@ -259,14 +268,59 @@ class AuthController extends Controller
         $loggedInUser = Auth::user();
         $userUnderReview = User::findOrFail($id);
 
-        if ($userUnderReview->user_type == RoleEnum::super_admin->value && $loggedInUser->tokenCan(RoleEnum::super_admin->value))
-        {
-            $userUnderReview->delete();
-            return response()->json(['message' => 'User deleted successfully.'], 200);
+        // You cannot fire a super admin unless you are one
+        if (
+            !$loggedInUser->tokenCan(RoleEnum::super_admin->value)) {
+            if ($userUnderReview->user_type == RoleEnum::super_admin) {
+                abort(403, 'Unauthorized action. You need to be a ' . RoleEnum::super_admin->value . ' user to perform this action.' );
+            }
+        }
+
+        // Check if the logged-in user is a super admin and is trying to deactivate another super admin
+        if (
+            $loggedInUser->tokenCan(RoleEnum::super_admin->value)
+        ) {
+            $userUnderReview->is_active = false;
+            $userUnderReview->save();
+
+            return response()->json(['message' => 'User deactivated successfully.'], 200);
+        }
+
+        // firm owner can fire anyone below them
+        if ($loggedInUser->tokenCan(RoleEnum::firm_owner->value)) {
+            // Check if the user being reviewed has one of the specified user types
+            if (
+                $userUnderReview->user_type == RoleEnum::branch_manager ||
+                $userUnderReview->user_type == RoleEnum::sales ||
+                $userUnderReview->user_type == RoleEnum::project_manager ||
+                $userUnderReview->user_type == RoleEnum::marketing ||
+                $userUnderReview->user_type == RoleEnum::firm_owner
+            ) {
+                // Check if the firm of the user being reviewed matches the firm of the logged-in user
+                if (
+                    $userUnderReview->firm == $loggedInUser->firm ||
+                    ($userUnderReview->branch && Branch::find($userUnderReview->branch)->firm == $loggedInUser->firm)
+                ) {
+                    // Deactivate the user
+                    $userUnderReview->is_active = false;
+                    $userUnderReview->save();
+                } else {
+                    // Return unauthorized action response if the user does not belong to the same firm
+                    return response()->json(['message' => 'Unauthorized action. User does not belong to your firm.'], 403);
+                }
+            } else {
+                // Return unauthorized action response if the user type is not allowed
+                return response()->json(['message' => 'Unauthorized action. Invalid user type.'], 403);
+            }
+            // Return success response after deactivating the user
+            return response()->json(['message' => 'User deactivated successfully.'], 200);
         }
 
 
 
-
+        return response()->json(['message' => 'Unauthorized action.',
+            'user under review'=> $userUnderReview,
+            'logged in user' => $loggedInUser,
+            ], 403);
     }
 }

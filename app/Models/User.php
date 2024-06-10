@@ -61,7 +61,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'user_type'=> RoleEnum::class,
-        'isActive' => 'boolean'
+        'is_active' => 'boolean'
     ];
 
 }
