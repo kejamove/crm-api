@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\RoleEnum;
 use App\Models\Branch;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -61,7 +62,7 @@ class AuthController extends Controller
     /**
      * Get the authenticated user.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function get_current_logged_in_user()
     {
@@ -160,7 +161,7 @@ class AuthController extends Controller
         ]);
 
         // Check if the authenticated user is an admin
-        if ($fields['user_type'] == 'super_admin' && !$user->tokenCan('super_admin')) {
+        if ($fields['user_type'] == 'super_admin' && !$user->tokenCan(RoleEnum::super_admin->value)) {
             abort(403, 'Unauthorized action. Only super admin can access this page.');
         }
 
@@ -198,17 +199,25 @@ class AuthController extends Controller
 
         $userObject = [] ;
 
-        if ($user->tokenCan(RoleEnum::super_admin->value) || $user->tokenCan(RoleEnum::firm_owner->value)) {
+        if ($user->tokenCan(RoleEnum::super_admin->value) ||
+            $user->tokenCan(RoleEnum::firm_owner->value)) {
             $userObject = User::where('branch', $branchId)->get();
             return response()->json($userObject, 200);
         }
 
         if ($user->tokenCan(RoleEnum::sales->value) ||
-            $user->tokenCan(RoleEnum::marketing->value) ||
-            $user->tokenCan(RoleEnum::project_manager->value) ||
-            $user->tokenCan(RoleEnum::branch_manager->value)
+            $user->tokenCan(RoleEnum::marketing->value)
         ) {
             return response()->json([$user], 200);
+        }
+
+        if (
+            $user->tokenCan(RoleEnum::project_manager->value) ||
+            $user->tokenCan(RoleEnum::branch_manager->value)
+        )
+        {
+            $userObject = User::where('branch', $branchId)->get();
+            return response()->json($userObject, 200);
         }
 
         abort(403, 'Unauthorized action.');
@@ -236,5 +245,28 @@ class AuthController extends Controller
         } else {
             abort(401, 'Unauthenticated action.');
         }
+    }
+
+    /**
+     * @return JsonResponse|void
+     * 1. If a user is assigned to a firm / branch then they cannot be deleted from the system but fired from the firm / branch
+     * 2. Only a superuser can delete another from the system
+     * 3. Only Firm owners can fire anyone from a firm / branch
+     * 4. Upon firing a user / turn their userActive status to FALSE
+     */
+    public function destroy($id)
+    {
+        $loggedInUser = Auth::user();
+        $userUnderReview = User::findOrFail($id);
+
+        if ($userUnderReview->user_type == RoleEnum::super_admin->value && $loggedInUser->tokenCan(RoleEnum::super_admin->value))
+        {
+            $userUnderReview->delete();
+            return response()->json(['message' => 'User deleted successfully.'], 200);
+        }
+
+
+
+
     }
 }

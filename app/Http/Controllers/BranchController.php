@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Enums\RoleEnum;
 use App\Models\Branch;
-use App\Models\Firm;
-use App\Models\Move;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -61,7 +59,7 @@ class BranchController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->tokenCan('firm_owner')) {
+        if ($user->tokenCan(RoleEnum::firm_owner->value)) {
             $request->validate([
                 'name'=>'required|string|unique:stores|max:255',
             ]);
@@ -83,7 +81,7 @@ class BranchController extends Controller
 
             return response()->json($branch, 201);
 
-        }else if ($user->tokenCan('super_admin')) {
+        }else if ($user->tokenCan(RoleEnum::super_admin->value)) {
             $request->validate([
                 'name'=>'required|string|unique:stores|max:255',
                 'firm'=>'required|int',
@@ -111,9 +109,9 @@ class BranchController extends Controller
     {
         $user = Auth::user();
         $firmId = $user->firm;
-        if ($user->tokenCan('super_admin') || $user->tokenCan('firm_owner') || $user->tokenCan('branch_manager')) {
+        if ($user->tokenCan(RoleEnum::super_admin->value) || $user->tokenCan(RoleEnum::firm_owner->value) || $user->tokenCan(RoleEnum::branch_manager->value)) {
 
-            if ($user->tokenCan('firm_owner') ) {
+            if ($user->tokenCan(RoleEnum::firm_owner->value) ) {
                 $branch = Branch::where('id', $id)
                     ->where('firm', $firmId)
                     ->first();
@@ -142,15 +140,15 @@ class BranchController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->tokenCan('super_admin') || $user->tokenCan('firm_owner') || $user->tokenCan('branch_manager')) {
+        if ($user->tokenCan(RoleEnum::super_admin->value) || $user->tokenCan(RoleEnum::firm_owner->value) || $user->tokenCan(RoleEnum::branch_manager->value)) {
 
-            if ($user->tokenCan('branch_manager') && $user->branch !== $id){
+            if ($user->tokenCan(RoleEnum::branch_manager->value) && $user->branch !== $id){
                 abort(403, 'Unauthorised Action. Wrong Branch!');
             }
 
             $firmId = $user->firm;
 
-            if ($user->tokenCan('firm_owner')) {
+            if ($user->tokenCan(RoleEnum::firm_owner->value)) {
                 $branch = Branch::where('id', $id)
                     ->where('firm', $firmId)
                     ->first();
@@ -180,19 +178,18 @@ class BranchController extends Controller
     public function destroy(string $id)
     {
         $user = Auth::user();
-        if ($user->tokenCan('super_admin') || $user->tokenCan('firm_owner') || $user->tokenCan('branch_manager')) {
+        if ($user->tokenCan(RoleEnum::super_admin->value) || $user->tokenCan(RoleEnum::firm_owner->value) || $user->tokenCan(RoleEnum::branch_manager->value)) {
 
-            if ($user->tokenCan('branch_manager') && $user->branch !== $id){
+            if ($user->tokenCan(RoleEnum::branch_manager->value) && $user->branch !== $id){
                 abort(403, 'Unauthorised Action. Wrong Branch!');
             }
 
             $firmId = $user->firm;
 
-            if ($user->tokenCan('firm_owner')) {
+            if ($user->tokenCan(RoleEnum::firm_owner->value)) {
                 $branch = Branch::where('id', $id)
                     ->where('firm', $firmId)
                     ->first();
-
                 if (!$branch) {
                     abort(403, 'Unauthorised. Wrong Firm or Branch!');
                 }

@@ -31,7 +31,6 @@ Route::post('/successful-move-email-notification', [EmailController::class, 'clo
  * Authenticate Users
  */
 Route::middleware('auth:sanctum')->post('/register-user', [AuthController::class, 'register_user']);
-Route::middleware('auth:sanctum')->get('/list-user-by-branch/{branchId}', [AuthController::class, 'getUserByBranch']);
 Route::post('/logout', [AuthController::class, 'logout']);
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -39,6 +38,7 @@ Route::post('/login', [AuthController::class, 'login']);
  * List User(s) details
  */
 Route::middleware(['auth:sanctum','throttle:1000,1'])->get('/list-users', [AuthController::class, 'index']);
+Route::middleware('auth:sanctum')->get('/list-user-by-branch/{branchId}', [AuthController::class, 'getUserByBranch']);
 Route::middleware('auth:sanctum')->get('/active-user', [AuthController::class, 'get_current_logged_in_user']);
 Route::middleware('auth:sanctum')->get('/user-data', [AuthController::class, 'get_user_data']);
 

@@ -68,7 +68,7 @@ class InvoiceController extends Controller
          * WHO CAN SEND INVOICE:
          * CONDITIONS:
          * 1. You have to belong to the firm or be a super admin
-         * 2. If you are not a 
+         * 2. If you are not a
          */
         try {
             // Retrieve invoice data
@@ -80,10 +80,10 @@ class InvoiceController extends Controller
             $firm = Firm::findOrFail($branch->firm);
 
 
-//             Retrieve the email setup configuration for the firm
+//          Retrieve the email setup configuration for the firm
             $mailSetup = EmailSetup::where('firm', $firm->id)->firstOrFail();
 
-//            // Prepare mail configuration
+//           Prepare mail configuration
              config([
                 'mail.mailers.smtp.host' => $mailSetup->host,
                 'mail.mailers.smtp.port' => $mailSetup->port,
@@ -93,12 +93,12 @@ class InvoiceController extends Controller
                 'mail.from.address' => $mailSetup->from_address,
                 'mail.from.name' => $mailSetup->from_name,
             ]);
-//            // Ensure that mail configuration is correctly structured
+
+//           Ensure that mail configuration is correctly structured
             if (!isset($mailSetup->host) || !isset($mailSetup->port) ) {
                 throw new \Exception("Mail configuration is missing required fields.");
             }
-//
-//
+
 //            // Send the email
             Mail::to($data->client_email)->send(new InvoiceMail($data, $mailSetup));
 

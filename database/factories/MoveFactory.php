@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\LeadSourceEnum;
 use App\Models\Branch;
 use App\Models\Move;
 use App\Enums\MoveStage;
@@ -28,7 +29,7 @@ class MoveFactory extends Factory
         return [
             'move_request_received_at' => Carbon::now(),
             'move_stage' => MoveStage::contacted,
-            'lead_source' => LeadSource::offline_marketing,
+            'lead_source' => LeadSourceEnum::offline_marketing,
             'consumer_name' => $this->faker->name,
             'corporate_name' => $this->faker->company,
             'client_email' => $this->faker->email(),

@@ -5,6 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 use App\Enums\MoveStage;
+use App\Enums\LeadSourceEnum;
 
 return new class extends Migration
 {
@@ -20,7 +21,7 @@ return new class extends Migration
             $table->id();
             $table->date('move_request_received_at')->default(Carbon::now());
             $table->string('move_stage')->default(MoveStage::contacted->value);
-            $table->string('lead_source')->default(\App\Enums\LeadSource::offline_marketing->value);
+            $table->string('lead_source')->default(LeadSourceEnum::offline_marketing->value);
             $table->string('consumer_name')->nullable();
             $table->string('corporate_name')->nullable();
             $table->string('client_email');

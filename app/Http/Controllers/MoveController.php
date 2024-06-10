@@ -33,7 +33,7 @@ class MoveController extends Controller
         $user = Auth::user();
 
         // Check if the user is a super admin && return all moves
-        if ($user->tokenCan('super_admin')) {
+        if ($user->tokenCan(RoleEnum::super_admin->value)) {
             return response()->json(Move::orderBy('id', 'desc')->get(), 200);
         }
 
@@ -51,10 +51,10 @@ class MoveController extends Controller
         }
 
         // branch_manager && project_manager
-        if ($user->tokenCan('branch_manager') || $user->tokenCan('project_manager')) {
+        if ($user->tokenCan(RoleEnum::branch_manager->value) || $user->tokenCan(RoleEnum::project_manager->value)) {
             $moves = Move::where('branch', $user->branch)->get();
             // Return the moves
-            return response()->json(['moves' => $moves], 200);
+            return response()->json($moves->sortByDesc('id')->values(), 200);
         }
 
         if ($user->tokenCan(RoleEnum::sales->value) || $user->tokenCan(RoleEnum::marketing->value)) {
@@ -200,17 +200,19 @@ class MoveController extends Controller
         $move = Move::findOrFail($id);
         $user = Auth::user();
 
-        if (!($user->tokenCan('super_admin') || $user->tokenCan('firm_owner') || $user->tokenCan('branch_manager'))) {
+        if (!($user->tokenCan(RoleEnum::super_admin->value) ||
+            $user->tokenCan(RoleEnum::firm_owner->value) ||
+            $user->tokenCan(RoleEnum::branch_manager->value))) {
             abort(403, 'Unauthorised Action!');
         }
 
-        if ($user->tokenCan('branch_manager') && $user->branch != $move->branch){
+        if ($user->tokenCan(RoleEnum::branch_manager->value) && $user->branch != $move->branch){
             abort(403, 'Unauthorised Action!');
         }
 
         $branch = Branch::with('firm')->findOrFail($move->branch);
 
-        if ($user->tokenCan('firm_owner') && $user->firm != $branch->firm) {
+        if ($user->tokenCan(RoleEnum::firm_owner->value) && $user->firm != $branch->firm) {
             abort(403, 'Unauthorised. Wrong Firm!');
         }
 
@@ -233,17 +235,17 @@ class MoveController extends Controller
         $user = Auth::user();
 
         // Check if the user is an admin or belongs to the store
-        if (!($user->tokenCan('super_admin') || $user->tokenCan('firm_owner') || $user->tokenCan('branch_manager'))) {
+        if (!($user->tokenCan(RoleEnum::super_admin->value) || $user->tokenCan(RoleEnum::firm_owner->value) || $user->tokenCan(RoleEnum::branch_manager->value))) {
             abort(403, 'Unauthorised Action!');
         }
 
-        if ($user->tokenCan('branch_manager') && $user->branch != $move->branch){
+        if ($user->tokenCan(RoleEnum::branch_manager->value) && $user->branch != $move->branch){
             abort(403, 'Unauthorised Action!');
         }
 
         $branch = Branch::findOrFail($move->branch);
 
-        if ($user->tokenCan('firm_owner') && $user->firm != $branch->firm) {
+        if ($user->tokenCan(RoleEnum::firm_owner->value) && $user->firm != $branch->firm) {
 //            return response()->json('sm');
             abort(403, 'Unauthorised. Wrong Firm!');
         }
@@ -288,7 +290,7 @@ class MoveController extends Controller
             $user = Auth::user();
 
             // only admin can see all stores
-            if ($user->tokenCan('admin')) {
+            if ($user->tokenCan(RoleEnum::super_admin->value)) {
                 $moveData = Move::select(
                     DB::raw('MONTH(move_request_received_at) as month'),
                     DB::raw('COUNT(*) as count')
@@ -308,7 +310,7 @@ class MoveController extends Controller
 
                 return response()->json($formattedData);
             }else {
-                return response()->json(['message' => 'Unauthorized. Missing required permissions: Admin'], 403);
+                return response()->json(['message' => 'Unauthorized. Missing required permissions'], 403);
             }
         }else {
             return response()->json(['message' => 'Unauthenticated'], 401);

@@ -142,12 +142,13 @@ class FirmController extends Controller
         if (!$branches) {
             abort(404, 'Firm Not Found');
         }
-//
+
         if ($user->tokenCan('firm_owner') && $user->firm != $id) {
-            abort(403, 'Unauthorised Access...............');
+            abort(403, 'Unauthorised Access');
         }
 
         return response()->json($branches, 200);
+
     }
 
     /*
@@ -158,9 +159,9 @@ class FirmController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->tokenCan('super_admin')){
+        if ($user->tokenCan(RoleEnum::super_admin->value)){
             return response()->json(['data' =>  Firm::count()]);
-        }elseif ($user->tokenCan('firm_owner')){
+        }elseif ($user->tokenCan(RoleEnum::firm_owner->value)){
             return response()->json(['data'=> 1], 200);
         }else {
             abort(403, 'Unauthorised access');
@@ -175,12 +176,12 @@ class FirmController extends Controller
     {
         $user = Auth::user();
 
-        if (!($user->tokenCan('super_admin') || $user->tokenCan('firm_owner'))) {
+        if (!($user->tokenCan(RoleEnum::super_admin->value) || $user->tokenCan(RoleEnum::firm_owner->value))) {
             abort(403, 'Unauthorised Action!');
         }
 
         // Check if the user is a firm owner and if the firm ID matches
-        if ($user->tokenCan('firm_owner') && $user->firm !== $id) {
+        if ($user->tokenCan(RoleEnum::firm_owner->value) && $user->firm !== $id) {
             abort(403, 'Unauthorised Access');
         }
 
@@ -198,12 +199,12 @@ class FirmController extends Controller
     {
         $user = Auth::user();
 
-        if (!($user->tokenCan('super_admin') || $user->tokenCan('firm_owner'))) {
+        if (!($user->tokenCan(RoleEnum::super_admin->value) || $user->tokenCan(RoleEnum::firm_owner->value))) {
             abort(403, 'Unauthorised Action!');
         }
 
         // Check if the user is a firm owner and if the firm ID matches
-        if ($user->tokenCan('firm_owner') && $user->firm !== $id) {
+        if ($user->tokenCan(RoleEnum::firm_owner->value) && $user->firm !== $id) {
             abort(403, 'Unauthorised Access');
         }
 
@@ -223,7 +224,7 @@ class FirmController extends Controller
             /**
              * is user a store_owner and does he have a store attached to him
              */
-            if ($user->tokenCan('firm_owner') && $user->firm) {
+            if ($user->tokenCan(RoleEnum::firm_owner->value) && $user->firm) {
 
                 /**
                  * does user's store match the request
@@ -237,11 +238,11 @@ class FirmController extends Controller
 
                 return response()->json($firm, 200);
 
-            }else if ($user->tokenCan('super_admin')) {
+            }else if ($user->tokenCan(RoleEnum::super_admin->value)) {
                 return response()->json(['Firm' => Firm::Find($id), 'sth'=> 'some text']);
             }else
             {
-                return response()->json(['message' => 'Unauthorized. Missing required permissions: Store Owner'], 403);
+                return response()->json(['message' => 'Unauthorized. Missing required permissions: Firm Owner'], 403);
             }
         }
         else {
