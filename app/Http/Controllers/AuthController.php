@@ -316,11 +316,6 @@ class AuthController extends Controller
             return response()->json(['message' => 'User deactivated successfully.'], 200);
         }
 
-
-
-        return response()->json(['message' => 'Unauthorized action.',
-            'user under review'=> $userUnderReview,
-            'logged in user' => $loggedInUser,
-            ], 403);
+        return response()->json(['message' => 'Unauthorized action.'], 403);
     }
 }

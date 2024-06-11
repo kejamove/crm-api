@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\LeadSourceEnum;
+use App\Enums\MoveStage;
 use App\Enums\RoleEnum;
 use App\Models\Branch;
 use App\Models\Firm;
@@ -227,6 +228,9 @@ class MoveController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     * 1. A Super Admin / Firm owner can delete move at any time
+     * 2. Anyone else belonging to the permitted roles must belong to the same branch as the move
+     * 3. The move should not be LOST/ WON
      */
     public function destroy(string $id)
     {
@@ -234,24 +238,47 @@ class MoveController extends Controller
 
         $user = Auth::user();
 
-        // Check if the user is an admin or belongs to the store
-        if (!($user->tokenCan(RoleEnum::super_admin->value) || $user->tokenCan(RoleEnum::firm_owner->value) || $user->tokenCan(RoleEnum::branch_manager->value))) {
-            abort(403, 'Unauthorised Action!');
-        }
-
-        if ($user->tokenCan(RoleEnum::branch_manager->value) && $user->branch != $move->branch){
-            abort(403, 'Unauthorised Action!');
+        // Check if the user is a super admin
+        if ($user->tokenCan(RoleEnum::super_admin->value)) {
+            $move->delete();
+            return response()->json(['message' => 'Move deleted successfully'], 200);
         }
 
         $branch = Branch::findOrFail($move->branch);
 
-        if ($user->tokenCan(RoleEnum::firm_owner->value) && $user->firm != $branch->firm) {
-//            return response()->json('sm');
-            abort(403, 'Unauthorised. Wrong Firm!');
+        // check if user is firm owner
+        if ($user->tokenCan(RoleEnum::firm_owner->value) && $user->firm == $branch->firm) {
+            $move->delete();
+            return response()->json(['message' => 'Move deleted successfully'], 200);
         }
 
-        $move->delete();
-        return response()->json(['message' => 'Move deleted successfully'], 200);
+        // check if user is branch manager
+        if ($user->tokenCan(RoleEnum::branch_manager->value) && $user->branch == $move->branch){
+            if ($move->move_stage != MoveStage::won && $move->move_stage != MoveStage::lost)
+            {
+                $move->delete();
+                return response()->json(['message' => 'Move deleted successfully'], 200);
+            }
+        }
+
+        // The user should be in the same branch as the move
+        if ($user->branch == $move->branch) {
+            if ($move->move_stage == MoveStage::won->value || $move->move_stage == MoveStage::lost->value)
+            {
+                abort(403, 'Unauthorised Action. Attempting to delete a complete move');
+            }
+
+            // The user id should be the same of the sales rep
+            if ($move->sales_representative != $user->id){
+                abort(403, 'Unauthorised Action. Attempting to delete a somebody else`s move' .$move->sales_reperesentative . $user->id);
+            }
+
+            $move->delete();
+            return response()->json(['message' => 'Move deleted successfully'], 200);
+        }
+
+        abort(403, 'Unauthorised Action');
+
     }
 
     /**
@@ -317,5 +344,7 @@ class MoveController extends Controller
         }
 
     }
+
+
 
 }
