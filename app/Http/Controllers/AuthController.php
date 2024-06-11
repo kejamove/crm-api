@@ -40,6 +40,12 @@ class AuthController extends Controller
          * FIRM OWNER
          */
         if ($user->tokenCan(RoleEnum::firm_owner->value)) {
+
+            if ($user->firm == null)
+            {
+                return response()->json([]);
+            }
+
             $query = User::where('firm', $user->firm);
 
             if ($request->has('branch')) {
@@ -245,9 +251,11 @@ class AuthController extends Controller
             // only admin can see all users
             if ($user->tokenCan('super_admin')) {
                 return response()->json(['count' => User::count()]);
-            }elseif ($user->tokenCan(RoleEnum::firm_owner->value)){
+            }elseif ($user->tokenCan(RoleEnum::firm_owner->value) && $user->firm !== null){
                 $employeeCount = User::where('firm', $user->firm)->get()->count();
                 return response()->json(['count'=>$employeeCount], 200);
+            }elseif ($user->tokenCan(RoleEnum::firm_owner->value) && $user->firm == null){
+                return response()->json(['count'=>0], 200);
             }
             else {
                 abort(403, 'Unauthorized Action.');

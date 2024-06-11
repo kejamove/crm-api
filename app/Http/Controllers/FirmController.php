@@ -161,9 +161,14 @@ class FirmController extends Controller
 
         if ($user->tokenCan(RoleEnum::super_admin->value)){
             return response()->json(['data' =>  Firm::count()]);
-        }elseif ($user->tokenCan(RoleEnum::firm_owner->value)){
-            return response()->json(['data'=> 1], 200);
-        }else {
+        }elseif ($user->tokenCan(RoleEnum::firm_owner->value )){
+            if ($user->firm !== null) {
+                return response()->json(['data' => 1], 200);
+            } else {
+                return response()->json(['data' => 0], 200);
+            }
+        }
+        else {
             abort(403, 'Unauthorised access');
         }
 
