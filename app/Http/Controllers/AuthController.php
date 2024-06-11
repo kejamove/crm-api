@@ -122,7 +122,8 @@ class AuthController extends Controller
         ]);
 
         if (User::count() < 1) {
-            return "There are no users in the database.";
+            abort(401,'There are no users in the database.');
+
         }
 
         // Check email and password

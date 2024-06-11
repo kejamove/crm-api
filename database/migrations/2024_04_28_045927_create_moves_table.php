@@ -28,7 +28,7 @@ return new class extends Migration
             $table->string('moving_from');
             $table->string('moving_to');
             $table->unsignedBigInteger('sales_representative')->nullable();
-            $table->foreign('sales_representative')->references('id')->on('users');
+            $table->foreign('sales_representative')->references('id')->on('users')->onDelete('set null');
             $table->unsignedBigInteger('branch')->nullable();
             $table->foreign('branch')->references('id')->on('branches')->onDelete('cascade');
             $table->string('invoiced_amount')->nullable();

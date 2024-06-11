@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('branches', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('firm');
+            $table->unsignedBigInteger('firm')->nullable(); // this points to the store Id
+            $table->foreign('firm')->references('id')->on('firms')->onDelete('cascade');
             $table->timestamps();
         });
     }
