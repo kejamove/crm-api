@@ -327,4 +327,74 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Unauthorized action.'], 403);
     }
+
+    /**
+     * CONDITIONS
+     * 1. Anyone can edit their own data
+     * 2 a) Super Admin cannot edit another super admin user data
+     * 2 b) Super admin can edit anyone other than other super admin data including branch and firm
+     * 3 a) Firm owner can edit data belonging to anyone in their firm
+     * 3 b) Firm owner cannot change their own firm
+     *
+     * @param Request $request
+     * @param $id
+     * @return JsonResponse
+     */
+    public function editUser(Request $request, $id)
+    {
+        $loggedInUser = Auth::user();
+        $userToEdit = User::findOrFail($id);
+
+        // Define validation rules
+        $rules = [
+            'email' => 'sometimes|string|email|max:255|unique:users,email,' . $id,
+            'password' => 'sometimes|string|min:8|confirmed',
+            'user_type' => 'sometimes|string',
+            'first_name' => 'sometimes|string|max:255',
+            'last_name' => 'sometimes|string|max:255',
+            'phone_local_number' => 'sometimes|string|max:255',
+            'phone_country_code' => 'sometimes|string|max:255',
+        ];
+
+        // Validate the request data
+        $data = $request->validate($rules);
+
+        // Super admin can edit any user's data except for other super admins
+        if ($loggedInUser->tokenCan(RoleEnum::super_admin->value)) {
+            if ($userToEdit->user_type == RoleEnum::super_admin->value && $loggedInUser->id != $id) {
+                return response()->json(['message' => 'Unauthorized action. You cannot edit another super admin.'], 403);
+            }
+
+            // Update user data
+            $userToEdit->update($data);
+            return response()->json(['message' => 'User updated successfully.'], 200);
+        }
+
+        // Firm owner can edit any user's data within their firm or any branch of their firm
+        if ($loggedInUser->tokenCan(RoleEnum::firm_owner->value)) {
+            // Check if the user belongs to the same firm or branch within the firm
+            if ($userToEdit->firm == $loggedInUser->firm ||
+                ($userToEdit->branch && Branch::find($userToEdit->branch)->firm == $loggedInUser->firm)) {
+                // Update user data
+                $userToEdit->update($data);
+                return response()->json(['message' => 'User updated successfully.'], 200);
+            } else {
+                return response()->json(['message' => 'Unauthorized action. User does not belong to your firm.'], 403);
+            }
+        }
+
+        // Allow any user to edit their own data, except for branch or firm
+        if ($loggedInUser->id == $userToEdit->id) {
+            // Exclude firm and branch from the update
+            unset($data['firm']);
+            unset($data['branch']);
+
+            // Update user data
+            $userToEdit->update($data);
+            return response()->json(['message' => 'User updated successfully.'], 200);
+        }
+
+        return response()->json(['message' => 'Unauthorized action.'], 403);
+    }
+
 }

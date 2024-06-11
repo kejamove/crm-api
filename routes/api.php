@@ -42,6 +42,7 @@ Route::middleware('auth:sanctum')->get('/list-user-by-branch/{branchId}', [AuthC
 Route::middleware('auth:sanctum')->get('/active-user', [AuthController::class, 'get_current_logged_in_user']);
 Route::middleware('auth:sanctum')->get('/user-data', [AuthController::class, 'get_user_data']);
 Route::middleware('auth:sanctum')->delete('/delete-user/{id}', [AuthController::class, 'destroy']);
+Route::middleware('auth:sanctum')->put('/edit-user/{id}', [AuthController::class, 'editUser']);
 
 /**
  * CRUD Operations on a Firm
