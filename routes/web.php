@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/mail', function () {
     return view('mail/invoice');
 });
+
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('api.welcome');

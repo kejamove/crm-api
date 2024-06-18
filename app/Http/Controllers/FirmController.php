@@ -9,6 +9,8 @@ use App\Models\Store;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Exports\FirmExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class FirmController extends Controller
 {
@@ -256,6 +258,11 @@ class FirmController extends Controller
         else {
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
+    }
+
+    public function exportFirmData(string $firmId)
+    {
+        return Excel::download(new FirmExport($firmId), 'firm_data.xlsx');
     }
 
 }
