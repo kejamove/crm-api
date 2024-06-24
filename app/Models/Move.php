@@ -33,6 +33,10 @@ class Move extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function salesRepresentative()
+    {
+        return $this->belongsTo(User::class, 'sales_representative_id', 'id');
+    }
 
     public function branch()
     {

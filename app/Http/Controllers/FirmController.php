@@ -205,23 +205,25 @@ class FirmController extends Controller
     public function destroy(string $id)
     {
         $user = Auth::user();
+        $isAuthorized = false;
 
         if ($user->tokenCan(RoleEnum::super_admin->value)) {
-            $firm = Firm::findOrFail($id);
-            $firm->delete();
-            return response()->json('Firm deleted successfully', 200);
+            $isAuthorized = true;
         }
 
-        // Check if the user is a firm owner and if the firm ID matches
         if ($user->tokenCan(RoleEnum::firm_owner->value) && $user->firm == $id) {
+            $isAuthorized = true;
+        }
+
+        if ($isAuthorized) {
             $firm = Firm::findOrFail($id);
             $firm->delete();
             return response()->json('Firm deleted successfully', 200);
         }
 
-        abort(403, 'Unauthorised Access');
-
+        abort(403, 'Unauthorized Access');
     }
+
 
     public function firmDetails(string $id)
     {

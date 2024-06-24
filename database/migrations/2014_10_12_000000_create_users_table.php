@@ -23,7 +23,7 @@ return new class extends Migration
             $table->unsignedBigInteger('firm')->nullable(); // this points to the store Id
             $table->foreign('firm')->references('id')->on('firms')->onDelete('set null');
             $table->unsignedBigInteger('branch')->nullable(); // this points to the store Id
-            $table->foreign('branch')->references('id')->on('branches')->onDelete('set null');
+            $table->foreign('branch')->references('id')->on('branches')->onDelete('cascade');
             $table->string('password');
             $table->boolean('is_active')->default(true);
             $table->string('user_type')->default(RoleEnum::sales->value);
