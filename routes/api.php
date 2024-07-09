@@ -1,14 +1,11 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\MoveController;
-use App\Http\Controllers\LeadController;
-use App\Models\User;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -59,7 +56,9 @@ Route::middleware('auth:sanctum')->get('/list-user-by-branch/{branchId}', [AuthC
 Route::middleware('auth:sanctum')->get('/active-user', [AuthController::class, 'get_current_logged_in_user']);
 Route::middleware('auth:sanctum')->get('/user-data', [AuthController::class, 'get_user_data']);
 Route::middleware('auth:sanctum')->delete('/delete-user/{id}', [AuthController::class, 'destroy']);
+Route::middleware('auth:sanctum')->put('/activate-user/{id}', [AuthController::class, 'activateUser']);
 Route::middleware('auth:sanctum')->put('/edit-user/{id}', [AuthController::class, 'editUser']);
+Route::middleware('auth:sanctum')->get('/user/{id}', [AuthController::class, 'getUserById']);
 
 /**
  * CRUD Operations on a Firm

@@ -726,6 +726,51 @@ class AuthController extends Controller
         abort(403, 'Unauthorized action.');
     }
 
+
+    /**
+     * @OA\Get(
+     *     path="/list-user-by-id/{id}",
+     *     operationId="getUserById",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User details"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized"
+     *     )
+     * )
+     */
+    public function getUserById($id)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $requestedUser = User::findOrFail($id);
+
+        if (
+            $user->tokenCan(RoleEnum::super_admin->value) ||
+            $user->id === $requestedUser->id ||
+            ($user->tokenCan(RoleEnum::firm_owner->value) && $user->firm === $requestedUser->firm) ||
+            ($user->tokenCan(RoleEnum::branch_manager->value) && $user->branch === $requestedUser->branch)
+        )
+        {
+            return response()->json($requestedUser, 200);
+        }
+
+        abort(403, 'Unauthorized action.');
+
+    }
+
     /**
      * @OA\Get(
      *     path="/user-data",
@@ -823,6 +868,59 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Unauthorized action.'], 403);
     }
+
+
+    public function activateUser($id)
+    {
+        $loggedInUser = Auth::user();
+        $userUnderReview = User::findOrFail($id);
+
+        // You cannot deactivate a super admin unless you are one
+        if (!$loggedInUser->tokenCan(RoleEnum::super_admin->value)) {
+            if ($userUnderReview->user_type == RoleEnum::super_admin) {
+                abort(403, 'Unauthorized action. You need to be a ' . RoleEnum::super_admin->value . ' user to perform this action.');
+            }
+        }
+
+        // Check if the logged-in user is a super admin and is trying to activate another super admin
+        if ($loggedInUser->tokenCan(RoleEnum::super_admin->value)) {
+            $userUnderReview->is_active = true;
+            $userUnderReview->save();
+
+            return response()->json(['message' => 'User activated successfully.'], 200);
+        }
+
+        // firm owner can activate anyone below them
+        if ($loggedInUser->tokenCan(RoleEnum::firm_owner->value)) {
+            // Check if the user being reviewed has one of the specified user types
+            if (
+                $userUnderReview->user_type == RoleEnum::branch_manager ||
+                $userUnderReview->user_type == RoleEnum::sales ||
+                $userUnderReview->user_type == RoleEnum::project_manager ||
+                $userUnderReview->user_type == RoleEnum::marketing ||
+                $userUnderReview->user_type == RoleEnum::firm_owner
+            ) {
+                // Check if the firm of the user being reviewed matches the firm of the logged-in user
+                if ($userUnderReview->firm == $loggedInUser->firm ||
+                    ($userUnderReview->branch && Branch::find($userUnderReview->branch)->firm == $loggedInUser->firm)) {
+                    // Activate the user
+                    $userUnderReview->is_active = true;
+                    $userUnderReview->save();
+                } else {
+                    // Return unauthorized action response if the user does not belong to the same firm
+                    return response()->json(['message' => 'Unauthorized action. User does not belong to your firm.'], 403);
+                }
+            } else {
+                // Return unauthorized action response if the user type is not allowed
+                return response()->json(['message' => 'Unauthorized action. Invalid user type.'], 403);
+            }
+            // Return success response after activating the user
+            return response()->json(['message' => 'User activated successfully.'], 200);
+        }
+
+        return response()->json(['message' => 'Unauthorized action.'], 403);
+    }
+
 
     /**
      * @OA\Patch(
