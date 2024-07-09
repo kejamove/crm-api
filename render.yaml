@@ -1,0 +1,104 @@
+services:
+  - type: web
+    name: KejaMove
+    env: php
+    region: oregon
+    plan: free
+    buildCommand: |
+      composer install --optimize-autoloader --no-dev
+      npm install
+      npm run prod
+    startCommand: 'php artisan serve --host 0.0.0.0 --port 10000'
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        value: base64:YljY0AlhQoPzUYEreDNVr9XF5FS0DoiaWpWWHYGRRF8=
+      - key: APP_DEBUG
+        value: 'false'
+      - key: APP_URL
+        value: https://kejamove.onrender.com
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        value: kejadigital.com
+      - key: DB_PORT
+        value: '3306'
+      - key: DB_DATABASE
+        value: kejadigital_victor
+      - key: DB_USERNAME
+        value: kejadigital_victor
+      - key: DB_PASSWORD
+        value: penguinset102&*
+      - key: BROADCAST_DRIVER
+        value: log
+      - key: CACHE_DRIVER
+        value: file
+      - key: FILESYSTEM_DISK
+        value: local
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: SESSION_DRIVER
+        value: file
+      - key: SESSION_LIFETIME
+        value: '120'
+      - key: MEMCACHED_HOST
+        value: 127.0.0.1
+      - key: REDIS_HOST
+        value: 127.0.0.1
+      - key: REDIS_PASSWORD
+        value: null
+      - key: REDIS_PORT
+        value: '6379'
+      - key: MAIL_MAILER
+        value: smtp
+      - key: MAIL_HOST
+        value: mail.kejamove.com
+      - key: MAIL_PORT
+        value: '465'
+      - key: MAIL_USERNAME
+        value: crm_testing@kejamove.com
+      - key: MAIL_PASSWORD
+        value: 23wer56p0c5
+      - key: MAIL_ENCRYPTION
+        value: ssl
+      - key: MAIL_FROM_ADDRESS
+        value: crm_testing@kejamove.com
+      - key: MAIL_FROM_NAME
+        value: KejaMove
+      - key: AWS_ACCESS_KEY_ID
+        value: ''
+      - key: AWS_SECRET_ACCESS_KEY
+        value: ''
+      - key: AWS_DEFAULT_REGION
+        value: us-east-1
+      - key: AWS_BUCKET
+        value: ''
+      - key: AWS_USE_PATH_STYLE_ENDPOINT
+        value: 'false'
+      - key: PUSHER_APP_ID
+        value: ''
+      - key: PUSHER_APP_KEY
+        value: ''
+      - key: PUSHER_APP_SECRET
+        value: ''
+      - key: PUSHER_HOST
+        value: ''
+      - key: PUSHER_PORT
+        value: '443'
+      - key: PUSHER_SCHEME
+        value: https
+      - key: PUSHER_APP_CLUSTER
+        value: mt1
+      - key: VITE_APP_NAME
+        value: KejaMove
+      - key: VITE_PUSHER_APP_KEY
+        value: ''
+      - key: VITE_PUSHER_HOST
+        value: ''
+      - key: VITE_PUSHER_PORT
+        value: ''
+      - key: VITE_PUSHER_SCHEME
+        value: https
+      - key: VITE_PUSHER_APP_CLUSTER
+        value: mt1

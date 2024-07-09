@@ -22,6 +22,23 @@ use App\Models\User;
 */
 
 /**
+ * @OA\OpenApi(
+ *     @OA\Info(
+ *         title="API Documentation",
+ *         version="1.0.0",
+ *         description="This is the API documentation for your project.",
+ *         @OA\Contact(
+ *             email="vicmwe184@gmail.com"
+ *         ),
+ *         @OA\License(
+ *             name="Apache 2.0",
+ *             url="http://www.apache.org/licenses/LICENSE-2.0.html"
+ *         )
+ *     )
+ * )
+ */
+
+/**
  * Email Notifications
  */
 Route::post('/possible-move-email-notification', [EmailController::class, 'email_received_and_under_review']);
@@ -108,4 +125,8 @@ Route::middleware('auth:sanctum')->delete('/setup-email/delete/{id}', [\App\Http
 /**
  * /home/kejadigital/www/test.kejadigital.com/composer
 */
+
+//Route::get('swagger', function () {
+//    return view('swagger');
+//});
 
