@@ -1,0 +1,1 @@
+- add firm status and instead of deleting just change status and download the content

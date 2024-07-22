@@ -67,15 +67,6 @@ class SingleSheetExport implements FromCollection, WithHeadings, WithTitle, With
         return $this->data;
     }
 
-//    public function headings(): array
-//    {
-//        // Assuming all items in the collection have the same structure
-//        if ($this->data->isEmpty()) {
-//            return [];
-//        }
-//
-//        return array_keys($this->data->first()->toArray());
-//    }
     public function headings(): array
     {
         // Define main headings
@@ -89,44 +80,39 @@ class SingleSheetExport implements FromCollection, WithHeadings, WithTitle, With
         $salesRepIds = $this->data->pluck('sales_representative')->unique();
         $salesRepNames = User::whereIn('id', $salesRepIds)->pluck('first_name', 'id')->toArray();
 
-// Fetch names of branches
+        // Fetch names of branches
         $branchIds = $this->data->pluck('branch')->unique();
         $branchNames = Branch::whereIn('id', $branchIds)->pluck('name', 'id')->toArray();
 
-// Add additional headings dynamically based on fetched names
-        $additionalHeadings = [];
+        // Prepare additional headings dynamically based on fetched names
         foreach ($this->data as $item) {
             $salesRepId = $item->sales_representative;
             if (!isset($salesRepNames[$salesRepId])) {
-//                $salesRepNames[$salesRepId] = User::findOrFail($salesRepId)->first_name;
                 try {
                     $salesRepNames[$salesRepId] = User::findOrFail($salesRepId)->first_name;
                 } catch (ModelNotFoundException $e) {
-                    // Handle the case where the user with $salesRepId is not found
                     $salesRepNames[$salesRepId] = 'Unknown Sales Rep';
                 }
             }
 
             $branchId = $item->branch;
             if (!isset($branchNames[$branchId])) {
-//                $branchNames[$branchId] = Branch::findOrFail($branchId)->name;
                 try {
-//                    $salesRepNames[$salesRepId] = User::findOrFail($salesRepId)->first_name;
-                $branchNames[$branchId] = Branch::findOrFail($branchId)->name;
-
+                    $branchNames[$branchId] = Branch::findOrFail($branchId)->name;
                 } catch (ModelNotFoundException $e) {
-                    // Handle the case where the user with $salesRepId is not found
                     $branchNames[$branchId] = 'Unknown Branch';
                 }
             }
 
-            // Prepare additional headings dynamically
-            $additionalHeadings[] = 'Sales Rep: ' . $salesRepNames[$salesRepId];
-            $additionalHeadings[] = 'Branch: ' . $branchNames[$branchId];
-        }
+            // Add additional headings dynamically
+            if (!in_array('Sales Rep: ' . $salesRepNames[$salesRepId], $headings)) {
+                $headings[] = 'Sales Rep: ' . $salesRepNames[$salesRepId];
+            }
 
-// Merge with existing headings
-        $headings = array_merge($this->headings(), $additionalHeadings);
+            if (!in_array('Branch: ' . $branchNames[$branchId], $headings)) {
+                $headings[] = 'Branch: ' . $branchNames[$branchId];
+            }
+        }
 
         return $headings;
     }
@@ -148,3 +134,5 @@ class SingleSheetExport implements FromCollection, WithHeadings, WithTitle, With
         ];
     }
 }
+
+
