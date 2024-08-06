@@ -47,6 +47,9 @@ Route::post('/successful-move-email-notification', [EmailController::class, 'clo
 Route::middleware('auth:sanctum')->post('/register-user', [AuthController::class, 'register_user']);
 Route::post('/logout', [AuthController::class, 'logout']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/login', function () {
+    return view('welcome');
+})->name('api.login');;
 
 /**
  * List User(s) details
