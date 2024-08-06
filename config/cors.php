@@ -23,7 +23,7 @@ return [
 
     'allowed_origins_patterns' => ["*https://kejacrm.netlify.app*"],
 
-    'allowed_headers' => ['*', 'https://kejacrm.netlify.app'],
+    'allowed_headers' => ['x-xsrf-token'],
 
     'exposed_headers' => [],
 
