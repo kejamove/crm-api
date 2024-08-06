@@ -21,7 +21,7 @@ return [
 
     'allowed_origins' => ['*', 'kejacrm.netlify.app', 'https://kejacrm.netlify.app', 'http://localhost:5174', 'http://localhost:5173'],
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => ["*kejacrm.netlify.app*"],
 
     'allowed_headers' => ['*', 'https://kejacrm.netlify.app'],
 
