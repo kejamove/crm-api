@@ -19,9 +19,9 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*', 'https://kejacrm.netlify.app', 'http://localhost:5174', 'http://localhost:5173'],
+    'allowed_origins' => ['https://kejacrm.netlify.app', 'http://localhost:5174', 'http://localhost:5173'],
 
-    'allowed_origins_patterns' => ["*https://kejacrm.netlify.app*"],
+    'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
 
@@ -29,6 +29,6 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => false,
+    'supports_credentials' => true,
 
 ];
