@@ -34,7 +34,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['https://kejacrm.netlify.app', 'http://localhost:5174', 'http://localhost:5173'],
+    'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => [],
 
