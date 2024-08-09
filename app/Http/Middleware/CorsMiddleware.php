@@ -18,7 +18,10 @@ class CorsMiddleware
         $response = $next($request);
 
         // Define allowed origins, methods, and headers
-        $allowedOrigins = ['http://localhost:5173', 'https://kejacrm.netlify.app']; // Specify allowed origins
+        $allowedOrigins = ['http://localhost:5173',
+            'https://kejacrm.netlify.app',
+            'https://vue-keja-0078b3005bae.herokuapp.com'
+            ]; // Specify allowed origins
         $origin = $request->headers->get('Origin');
 
         if (in_array($origin, $allowedOrigins)) {
